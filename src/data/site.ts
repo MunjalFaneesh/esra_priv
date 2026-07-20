@@ -29,6 +29,36 @@ export const SITE = {
 } as const;
 
 /**
+ * Contact addresses.
+ *
+ * These are real, monitored mailboxes on Zoho Mail (free plan for now).
+ * They are the only email addresses that should appear anywhere on the
+ * site — do not invent role addresses that no one is reading. Adding a new
+ * mailbox is a one-line edit here once it exists in Zoho.
+ *
+ * Receive-only aliases (press@, join@, …) can be added later; see
+ * docs/operations.md for why they must live in Zoho rather than Cloudflare
+ * Email Routing while Zoho holds the domain's MX records.
+ */
+export const CONTACTS: { address: string; label: string; note: string }[] = [
+  {
+    address: 'info@esra.bot',
+    label: 'General',
+    note: 'Introductions, press, and anything that has no better home.',
+  },
+  {
+    address: 'engineering@esra.bot',
+    label: 'Engineering',
+    note: 'Hardware, firmware, and questions about the open designs.',
+  },
+  {
+    address: 'vibhu@esra.bot',
+    label: 'Vibhu T. Gooty',
+    note: 'Co-director. Partnerships and anything organisational.',
+  },
+];
+
+/**
  * Primary navigation. `mono` renders the item in the monospace utility
  * style rather than as a normal nav link.
  */

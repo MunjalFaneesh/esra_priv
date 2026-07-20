@@ -1,24 +1,25 @@
-name: Refresh
+name: Refresh (deploy-hook — dormant)
 
-# Keeps the static site current without anyone running a build.
+# Keeps the static site current by pinging a Vercel Deploy Hook, which
+# triggers Vercel's OWN git-based build.
 #
-# The site is prerendered, so external data (GitHub repo stats, YouTube
-# videos) is baked in at build time. This redeploys on a schedule and on
-# demand so that data never goes stale by more than the cron interval.
+# DORMANT FOR NOW. A deploy hook only works once Vercel is connected to
+# this repository — and that connection is exactly what the Hobby plan
+# blocks for a private org repo. While that is the case, deploy.yml does
+# the scheduled rebuild instead, by building here and uploading with a
+# token. This file fires on nothing but the manual button so the two
+# cannot both deploy at once.
 #
-# Publishing a post does NOT depend on this — committing markdown to main
-# triggers Vercel's own git deploy immediately.
+# TO REVIVE: once the repo is public or the account is on Pro, connect it
+# in the Vercel dashboard, create a Deploy Hook (Settings -> Git -> Deploy
+# Hooks), store it as VERCEL_DEPLOY_HOOK, restore the schedule and
+# repository_dispatch triggers below, and delete deploy.yml.
 
 on:
-  schedule:
-    # Every 6 hours. Lower it freely; a rebuild is cheap and the Vercel
-    # hobby/pro build minutes for a static site of this size are trivial.
-    - cron: '0 */6 * * *'
-
-  # Fired by an org-level webhook when any esrabot repo is pushed, so
-  # project data updates as soon as work lands anywhere in the org.
-  repository_dispatch:
-    types: [refresh-site, org-push]
+  # schedule:
+  #   - cron: '0 */6 * * *'
+  # repository_dispatch:
+  #   types: [refresh-site, org-push]
 
   # Manual button in the Actions tab.
   workflow_dispatch:

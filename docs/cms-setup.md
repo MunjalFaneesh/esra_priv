@@ -51,10 +51,10 @@ On GitHub: **Settings → Developer settings → OAuth Apps → New OAuth App**.
 Register it under the **esrabot organization**, not a personal account, so it
 outlives any one person's involvement.
 
-| Field | Value |
-| --- | --- |
-| Application name | ESRA content editor |
-| Homepage URL | `https://esra.bot` |
+| Field                      | Value                                                       |
+| -------------------------- | ----------------------------------------------------------- |
+| Application name           | ESRA content editor                                         |
+| Homepage URL               | `https://esra.bot`                                          |
 | Authorization callback URL | `https://sveltia-cms-auth.<subdomain>.workers.dev/callback` |
 
 The callback path is `/callback` exactly.
@@ -63,11 +63,11 @@ The callback path is `/callback` exactly.
 
 In the Cloudflare dashboard, under **Settings → Variables** for the worker:
 
-| Variable | Value |
-| --- | --- |
-| `GITHUB_CLIENT_ID` | from the OAuth app |
+| Variable               | Value                                        |
+| ---------------------- | -------------------------------------------- |
+| `GITHUB_CLIENT_ID`     | from the OAuth app                           |
 | `GITHUB_CLIENT_SECRET` | from the OAuth app — **mark this encrypted** |
-| `ALLOWED_DOMAINS` | `esra.bot` |
+| `ALLOWED_DOMAINS`      | `esra.bot`                                   |
 
 `ALLOWED_DOMAINS` matters. Without it the relay will mint tokens for a sign-in
 started from any site, which turns it into an open credential endpoint. Set it

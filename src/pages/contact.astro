@@ -1,0 +1,169 @@
+---
+/**
+ * Contact — the mailboxes and channels a reader can actually reach.
+ *
+ * Addresses come from the CONTACTS registry in data/site.ts, channels from
+ * the org registry in data/orgs.ts, so this page never hardcodes an address
+ * or a social URL: it shows exactly what exists and nothing that doesn't.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/ui/Section.astro';
+import SectionHead from '../components/ui/SectionHead.astro';
+import MonoLabel from '../components/ui/MonoLabel.astro';
+import DataGrid from '../components/ui/DataGrid.astro';
+import { CONTACTS, SITE } from '../data/site';
+import { ORGS, PLATFORM_META } from '../data/orgs';
+---
+
+<BaseLayout
+  title="Contact"
+  description="How to reach ESRA — email, and where we post."
+  sourcePath="site/contact.astro"
+>
+  <Section pad="hero">
+    <MonoLabel as="div" size="sm" track="label">Reach us · directory</MonoLabel>
+    <h1 class="on-grid">Contact</h1>
+    <p class="lede on-grid">
+      Email is best, and it is read by people rather than a bot. For build logs and day-to-day
+      updates, the channels below are where they land first.
+    </p>
+  </Section>
+
+  <Section pad="normal">
+    <SectionHead title="Email" aside={`N=${CONTACTS.length}`} />
+    <DataGrid min="260px">
+      {
+        CONTACTS.map((c) => (
+          <a class="mailbox" href={`mailto:${c.address}`}>
+            <MonoLabel as="div" size="micro" track="wide">
+              {c.label}
+            </MonoLabel>
+            <div class="addr">{c.address}</div>
+            <div class="note">{c.note}</div>
+          </a>
+        ))
+      }
+    </DataGrid>
+    <MonoLabel as="p" size="micro" track="wide" upper={false} class="foot">
+      Mailboxes hosted on Zoho Mail. More addresses will appear here as we add them.
+    </MonoLabel>
+  </Section>
+
+  <Section pad="normal" last>
+    <SectionHead title="Channels" aside={`N=${ORGS.length} orgs`} />
+    <div class="orgs">
+      {
+        ORGS.map((org) => (
+          <div class="org">
+            <MonoLabel as="div" size="micro" track="wide" class="org-head">
+              {org.name}
+            </MonoLabel>
+            <ul>
+              {org.links.map((link) => (
+                <li>
+                  <a
+                    href={link.url}
+                    rel="noopener"
+                    target={link.platform === 'email' ? null : '_blank'}
+                  >
+                    <span class="ch-label">{PLATFORM_META[link.platform].label}</span>
+                    {link.handle && <span class="ch-handle">{link.handle}</span>}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+    <MonoLabel as="p" size="micro" track="wide" upper={false} class="foot">
+      Everything here is generated from <a href={SITE.repoUrl} rel="noopener">the registry</a>, so
+      it is current by construction.
+    </MonoLabel>
+  </Section>
+</BaseLayout>
+
+<style>
+  .mailbox {
+    display: block;
+    padding: 20px;
+    text-decoration: none;
+    color: var(--ink-strong);
+    transition: background var(--dur-fast) var(--ease);
+  }
+
+  .mailbox:hover {
+    background: rgba(36, 36, 36, 0.05);
+    color: var(--ink-strong);
+  }
+
+  .addr {
+    margin-top: var(--u-half);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    color: var(--accent-ink);
+  }
+
+  .note {
+    margin-top: var(--u-quarter);
+    font-size: var(--t-sm);
+    line-height: var(--lh-grid);
+    color: var(--ink-muted);
+  }
+
+  .orgs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--u-2);
+  }
+
+  .org-head {
+    display: block;
+    margin-bottom: var(--u-half);
+    padding-bottom: var(--u-half);
+    border-bottom: var(--rule-width) solid var(--rule);
+  }
+
+  .org ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .org li + li {
+    margin-top: var(--u-quarter);
+  }
+
+  .org a {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--u);
+    text-decoration: none;
+    color: var(--ink-body);
+    padding: var(--u-quarter) 0;
+  }
+
+  .org a:hover {
+    color: var(--accent-ink);
+  }
+
+  .ch-label {
+    font-size: var(--t-sm);
+  }
+
+  .ch-handle {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono-sm);
+    color: var(--ink-muted);
+    text-align: right;
+  }
+
+  .foot {
+    margin-top: var(--u);
+    color: var(--ink-muted);
+  }
+
+  .foot :global(a) {
+    color: inherit;
+  }
+</style>

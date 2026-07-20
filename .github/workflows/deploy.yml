@@ -1,0 +1,152 @@
+name: Deploy
+
+# Builds the site here and ships the finished output to Vercel with a
+# token, instead of connecting Vercel to this GitHub repository.
+#
+# WHY THIS EXISTS. Vercel's Hobby plan refuses to deploy from a private
+# repository owned by an organisation, which is what esrabot/web is. The
+# usual Git integration is therefore unavailable. This workflow sidesteps
+# it entirely: GitHub Actions runs the build and uploads the prebuilt
+# result, so Vercel never needs to see the repository.
+#
+# WHEN TO DELETE IT. The moment the repo is public, or the account is on
+# Pro, connect the repo in the Vercel dashboard and let Vercel's own Git
+# deploys take over — they are simpler and give native PR previews. Then
+# delete this file and re-enable refresh.yml's deploy hook.
+#
+# REQUIRED SECRETS (Settings -> Secrets and variables -> Actions):
+#   VERCEL_TOKEN        a token from https://vercel.com/account/tokens
+#   VERCEL_ORG_ID       team_OdgeKlEMN99sSdnvgmyoUpFY   (from .vercel/project.json)
+#   VERCEL_PROJECT_ID   prj_6X2OWTk0VYjbRD8bz5PTO42YnC5D
+# The two IDs are not secret, but Actions has no separate "variable"
+# requirement here, so storing them as secrets keeps it uniform.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Scheduled rebuild so build-time data (repo stats, videos) stays fresh
+  # without a push. Replaces refresh.yml while the token path is in use.
+  schedule:
+    - cron: '0 */6 * * *'
+  # Fired by an org-level webhook when any esrabot repo changes.
+  repository_dispatch:
+    types: [refresh-site, org-push]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # A missing token should skip cleanly, not fail every run before the
+    # secret is added. Once set, every run deploys.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+
+    # Production for anything landing on or refreshing main; a preview URL
+    # for pull requests.
+    env:
+      IS_PROD: ${{ github.event_name != 'pull_request' }}
+
+    permissions:
+      contents: read
+      pull-requests: write # to comment the preview URL
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Guard — token present
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "::warning::VERCEL_TOKEN is not set — skipping deploy."
+            echo "Add VERCEL_TOKEN, VERCEL_ORG_ID and VERCEL_PROJECT_ID as"
+            echo "repository secrets to enable deployment. See docs/operations.md."
+            echo "skip=true" >> "$GITHUB_ENV"
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: env.skip != 'true'
+
+      - uses: actions/setup-node@v4
+        if: env.skip != 'true'
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        if: env.skip != 'true'
+        run: pnpm install --frozen-lockfile
+
+      # The same gates CI runs, so a scheduled or dispatch-triggered deploy
+      # cannot publish content that would have failed a pull request.
+      - name: Validate
+        if: env.skip != 'true'
+        run: |
+          pnpm validate:content
+          pnpm check:contrast
+          pnpm check:grid
+
+      - name: Install Vercel CLI
+        if: env.skip != 'true'
+        run: pnpm add -g vercel@latest
+
+      - name: Pull Vercel environment
+        if: env.skip != 'true'
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --yes \
+            --environment=${{ env.IS_PROD == 'true' && 'production' || 'preview' }} \
+            --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Build
+        if: env.skip != 'true'
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          # Authenticated GitHub API for build-time repo stats.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: vercel build ${{ env.IS_PROD == 'true' && '--prod' || '' }} --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Deploy
+        if: env.skip != 'true'
+        id: deploy
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          url=$(vercel deploy --prebuilt ${{ env.IS_PROD == 'true' && '--prod' || '' }} \
+            --token="${{ secrets.VERCEL_TOKEN }}")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed to $url"
+
+      # Puts the preview link on the pull request so a non-technical
+      # contributor can see their post before it is merged.
+      - name: Comment preview URL
+        if: env.skip != 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.deploy.outputs.url }}';
+            const body = `Preview of this change: ${url}\n\n_Updated on every push to this pull request._`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const mine = comments.find((c) => c.user.type === 'Bot' && c.body.startsWith('Preview of this change:'));
+            if (mine) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: mine.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: context.issue.number, body,
+              });
+            }
