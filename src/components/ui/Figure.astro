@@ -170,7 +170,7 @@ const hasCaption = caption || Astro.slots.has('caption');
     margin-top: 8px;
     font-family: var(--font-mono);
     font-size: var(--t-micro);
-    line-height: 15px;
+    line-height: 15px; /* sub-grid: caption sits under the figure plate, outside the text flow */
     color: var(--ink-muted);
   }
 

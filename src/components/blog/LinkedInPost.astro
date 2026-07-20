@@ -1,0 +1,180 @@
+---
+/**
+ * A featured LinkedIn post.
+ *
+ * Rendered as a card in the site's own idiom, with LinkedIn's official
+ * embed loaded only when the reader asks for it. Two reasons for the
+ * facade rather than a bare iframe:
+ *
+ *  - LinkedIn's embed sets cookies and pulls a large third-party bundle.
+ *    Not loading it until someone opts in keeps the home page static and
+ *    avoids shipping a tracker to every visitor.
+ *  - The raw embed carries LinkedIn's own visual language, which sits
+ *    badly against this design. The card matches the site; the embed
+ *    appears in place once expanded.
+ *
+ * Usable in MDX too: <LinkedInPost activityId="7394171470467223552" />
+ */
+import { Icon } from 'astro-icon/components';
+import MonoLabel from '../ui/MonoLabel.astro';
+
+interface Props {
+  /** Digits from urn:li:activity:<id>. */
+  activityId: string;
+  title: string;
+  summary?: string;
+  /** Source label, e.g. "Rutgers Dynamics". */
+  source?: string;
+  /** Canonical post URL, for the "open on LinkedIn" link. */
+  url?: string;
+  date?: Date;
+}
+
+const { activityId, title, summary, source = 'LinkedIn', url, date } = Astro.props;
+
+const embedSrc = `https://www.linkedin.com/embed/feed/update/urn:li:activity:${activityId}`;
+const postUrl = url ?? `https://www.linkedin.com/feed/update/urn:li:activity:${activityId}/`;
+---
+
+<article class="li-card" data-embed={embedSrc}>
+  <div class="head">
+    <MonoLabel size="micro" track="wider">
+      <Icon name="simple-icons:linkedin" class="li-icon" aria-hidden="true" />
+      LinkedIn · {source}
+    </MonoLabel>
+    {
+      date && (
+        <MonoLabel size="micro" track="wide">
+          <time datetime={date.toISOString()}>{date.toISOString().slice(0, 10)}</time>
+        </MonoLabel>
+      )
+    }
+  </div>
+
+  <div class="body">
+    <h3>{title}</h3>
+    {summary && <p>{summary}</p>}
+  </div>
+
+  <div class="actions">
+    <button type="button" class="load">Show post &#9662;</button>
+    <a href={postUrl} rel="noopener" target="_blank">Open on LinkedIn &#8599;</a>
+  </div>
+
+  <div class="slot" hidden></div>
+</article>
+
+<script>
+  // Progressive enhancement. With no JS the card still shows the title,
+  // the summary, and a working link to the post.
+  document.querySelectorAll<HTMLElement>('.li-card').forEach((card) => {
+    const button = card.querySelector<HTMLButtonElement>('.load');
+    const slot = card.querySelector<HTMLElement>('.slot');
+    const src = card.dataset.embed;
+    if (!button || !slot || !src) return;
+
+    button.addEventListener('click', () => {
+      if (slot.childElementCount > 0) {
+        // Second press collapses it again.
+        const open = !slot.hidden;
+        slot.hidden = open;
+        button.innerHTML = open ? 'Show post &#9662;' : 'Hide post &#9652;';
+        return;
+      }
+
+      const frame = document.createElement('iframe');
+      frame.src = src;
+      frame.title = 'LinkedIn post';
+      frame.loading = 'lazy';
+      frame.setAttribute('frameborder', '0');
+      frame.allowFullscreen = true;
+      slot.appendChild(frame);
+      slot.hidden = false;
+      button.innerHTML = 'Hide post &#9652;';
+    });
+  });
+</script>
+
+<style>
+  .li-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: var(--u);
+  }
+
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--u-half);
+    padding-bottom: var(--u-half);
+    border-bottom: var(--rule-width) solid var(--rule-soft);
+  }
+
+  .li-icon {
+    width: 11px;
+    height: 11px;
+    display: inline-block;
+    vertical-align: -1px;
+    margin-right: 4px;
+  }
+
+  .body {
+    flex: 1;
+    padding-top: var(--u-half);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: var(--t-lg);
+    font-weight: var(--w-semibold);
+    line-height: var(--lh-grid);
+    letter-spacing: var(--track-snug);
+  }
+
+  p {
+    margin: var(--u-quarter) 0 0;
+    font-size: var(--t-base);
+    line-height: var(--lh-grid);
+    color: var(--ink-body);
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: var(--u);
+    margin-top: var(--u);
+    padding-top: var(--u-half);
+    border-top: var(--rule-width) solid var(--rule-soft);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono-sm);
+    letter-spacing: var(--track-wide);
+  }
+
+  .load {
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    color: var(--accent-ink);
+    font: inherit;
+    letter-spacing: inherit;
+  }
+
+  .load:hover {
+    text-decoration: underline;
+  }
+
+  .slot {
+    margin-top: var(--u-half);
+  }
+
+  .slot :global(iframe) {
+    width: 100%;
+    height: 560px;
+    border: var(--rule-width) solid var(--rule);
+    display: block;
+    background: var(--sheet);
+  }
+</style>

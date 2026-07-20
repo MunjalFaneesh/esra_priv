@@ -16,6 +16,8 @@ import { readdir, readFile, access } from 'node:fs/promises';
 import { join, extname, dirname, resolve, relative } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
+import { RESERVED_ROUTES } from '../src/lib/reserved-routes.mjs';
+
 const problems = [];
 const notes = [];
 
@@ -71,6 +73,9 @@ const memberIds = new Set(
   )
 );
 
+/** slug -> file, so a collision can name both sides. */
+const memberSlugs = new Map();
+
 for (const file of memberFiles) {
   const raw = await readFile(file, 'utf8');
   const { frontmatter } = splitFrontmatter(raw);
@@ -108,6 +113,43 @@ for (const file of memberFiles) {
       );
     }
   }
+
+  // Member pages are served from the site root (esra.bot/willcforte), so a
+  // slug shares a namespace with every real route. Catch clashes here,
+  // where the message can explain the problem.
+  const slug =
+    data?.handle ??
+    file
+      .split('/')
+      .pop()
+      .replace(/\.mdx?$/, '');
+
+  if (RESERVED_ROUTES.has(slug.toLowerCase())) {
+    fail(
+      file,
+      `uses the URL slug "${slug}", which is a reserved site route`,
+      `Member pages live at the site root, so /${slug} is already taken.\n` +
+        'Add a different `handle:` to the frontmatter, e.g.  handle: your-name'
+    );
+  }
+
+  if (data?.handle && !/^[a-z0-9][a-z0-9-]*$/.test(data.handle)) {
+    fail(
+      file,
+      `has an invalid \`handle\`: "${data.handle}"`,
+      'Use lowercase letters, numbers and hyphens only, e.g.  handle: willcforte'
+    );
+  }
+
+  const clash = memberSlugs.get(slug);
+  if (clash) {
+    fail(
+      file,
+      `resolves to the same URL as ${clash}: /${slug}`,
+      'Two members cannot share a slug. Set a distinct `handle:` on one of them.'
+    );
+  }
+  memberSlugs.set(slug, file);
 }
 
 // ---------------------------------------------------------------------

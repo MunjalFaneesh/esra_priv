@@ -134,10 +134,22 @@
   --track-widest: 0.12em;
   --track-mono-label: 0.16em;
 
-  /* Line heights — all multiples of the grid where they carry text */
+  /*
+   * Line heights.
+   *
+   * Every line height that carries text MUST be a multiple of --u, or
+   * everything below it slides off the baseline grid by the remainder.
+   * Unitless ratios are the trap here: 1.05 on a 52px display size gives
+   * 54.6px, which is ~7px past the 48px two-cell mark, and that offset
+   * accumulates down the page.
+   *
+   * Headings therefore get an explicit cell count, not a ratio.
+   */
   --lh-tight: 1;
-  --lh-grid: 24px; /* the workhorse: one baseline unit */
-  --lh-snug: 18px;
+  --lh-grid: 24px; /* 1 cell — the workhorse */
+  --lh-snug: 18px; /* sub-grid, for captions and margin notes only */
+  --lh-h1: 48px; /* 2 cells — page titles up to 52px */
+  --lh-hero: 72px; /* 3 cells — the home hero */
   --lh-loose: 1.6;
 
   /* Weights */

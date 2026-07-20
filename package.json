@@ -21,7 +21,8 @@
     "validate:content": "node scripts/validate-content.mjs",
     "validate:links": "node scripts/validate-links.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
-    "optimize:assets": "node scripts/optimize-assets.mjs"
+    "optimize:assets": "node scripts/optimize-assets.mjs",
+    "check:grid": "node scripts/check-grid.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^7.0.3",

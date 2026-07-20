@@ -18,6 +18,7 @@ import BOM from './BOM.astro';
 import Repo from './Repo.astro';
 import Spec from './Spec.astro';
 import Eq from './Eq.astro';
+import LinkedInPost from './LinkedInPost.astro';
 
 export const mdxComponents = {
   Fig,
@@ -32,6 +33,7 @@ export const mdxComponents = {
   Repo,
   Spec,
   Eq,
+  LinkedInPost,
 };
 
 export type MdxComponents = typeof mdxComponents;

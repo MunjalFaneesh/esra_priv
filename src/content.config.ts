@@ -77,8 +77,28 @@ const members = defineCollection({
   schema: ({ image }) =>
     z.object({
       name: z.string(),
-      /** Sort key and stable ID; the filename is the slug. */
+      /** Sort key. */
       order: z.number().default(100),
+
+      /**
+       * Vanity URL. `handle: willcforte` publishes the record at
+       * esra.bot/willcforte rather than esra.bot/will-forte.
+       *
+       * Deliberately NOT called `slug`: that is a reserved frontmatter key
+       * in Astro content collections and silently overrides the entry id,
+       * which breaks every `authors:` reference pointing at the file.
+       *
+       * These live at the site root, so a handle must not collide with a
+       * real route — scripts/validate-content.mjs enforces that against
+       * the reserved list and fails the build on a clash.
+       */
+      handle: z
+        .string()
+        .regex(
+          /^[a-z0-9][a-z0-9-]*$/,
+          'must be lowercase letters, numbers and hyphens, starting with a letter or number'
+        )
+        .optional(),
 
       /** Discipline, e.g. "Mechanical" / "Software". */
       discipline: z.string().optional(),
@@ -220,6 +240,43 @@ const boms = defineCollection({
   }),
 });
 
+/**
+ * The home page showcase.
+ *
+ * A hand-curated strip that sits above the auto-generated repo and video
+ * tiles, so anything worth surfacing — a LinkedIn post, a talk, an
+ * external write-up — can be featured without touching a component.
+ * Reorder or retire an item by editing one YAML file.
+ */
+const featured = defineCollection({
+  loader: file('./src/content/featured.yaml'),
+  schema: z.object({
+    type: z.enum(['linkedin', 'youtube', 'repo', 'link']),
+    title: z.string(),
+    /** Short line under the title. */
+    summary: z.string().optional(),
+    /** Which org posted it; shown as the source label. */
+    org: z.enum(['esra', 'rutgers-dynamics']).default('esra'),
+    date: z.coerce.date().optional(),
+
+    /**
+     * LinkedIn activity URN id — the digits from
+     * urn:li:activity:<id>, which appear in the post's URL.
+     */
+    activityId: z.string().optional(),
+    /** For youtube: the 11-character video id. */
+    videoId: z.string().optional(),
+    /** For repo: owner/name. */
+    repo: z.string().optional(),
+    /** Canonical link, and the fallback for every type. */
+    url: z.string(),
+
+    /** Hide without deleting. */
+    draft: z.boolean().default(false),
+    order: z.number().default(100),
+  }),
+});
+
 const docs = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/docs' }),
   schema: z.object({
@@ -232,4 +289,13 @@ const docs = defineCollection({
   }),
 });
 
-export const collections = { blog, members, projects, gallery, partners, boms, docs };
+export const collections = {
+  blog,
+  members,
+  projects,
+  gallery,
+  partners,
+  boms,
+  docs,
+  featured,
+};

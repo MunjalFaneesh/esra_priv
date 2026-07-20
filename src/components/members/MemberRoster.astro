@@ -15,6 +15,7 @@ import MonoLabel from '../ui/MonoLabel.astro';
 import LinkChip from '../ui/LinkChip.astro';
 import Prose from '../ui/Prose.astro';
 import { memberCode, initials } from '../../lib/order';
+import { memberPath } from '../../lib/routes';
 import { getOrg } from '../../data/orgs';
 
 interface Props {
@@ -53,7 +54,7 @@ const roleLine = selected.data.roles
           return (
             <li>
               <a
-                href={`/members/${m.id}`}
+                href={memberPath(m)}
                 class:list={['row', { selected: isSelected }]}
                 aria-current={isSelected ? 'true' : undefined}
               >

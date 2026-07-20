@@ -1,6 +1,7 @@
 ---
 name: Will C. Forte
 order: 1
+handle: willcforte
 discipline: Mechanical
 affiliation: Rutgers Dynamics
 avatar: ../../assets/avatars/will-forte.png

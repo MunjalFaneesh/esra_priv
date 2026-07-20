@@ -19,6 +19,7 @@ import LinkChip from '../../components/ui/LinkChip.astro';
 import Comments from '../../components/blog/Comments.astro';
 import { mdxComponents } from '../../components/blog';
 import { readingTime } from '../../lib/reading-time';
+import { memberPath } from '../../lib/routes';
 
 export async function getStaticPaths() {
   const posts = (await getCollection('blog')).filter((p) => import.meta.env.DEV || !p.data.draft);
@@ -55,7 +56,7 @@ const dateStr = post.data.date.toISOString().slice(0, 10);
           authors.map((a, i) => (
             <>
               {i > 0 && ' · '}
-              <a href={`/members/${a!.id}`}>{a!.data.name}</a>
+              <a href={memberPath(a!)}>{a!.data.name}</a>
               {a!.data.affiliation && <span class="affil"> — {a!.data.affiliation}</span>}
             </>
           ))
@@ -120,7 +121,7 @@ const dateStr = post.data.date.toISOString().slice(0, 10);
     margin: var(--u) 0 0;
     font-size: var(--t-h1);
     font-weight: var(--w-semibold);
-    line-height: 1.1;
+    line-height: var(--lh-h1);
     letter-spacing: var(--track-tight);
   }
 

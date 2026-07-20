@@ -40,6 +40,11 @@ jobs:
       - name: Check colour contrast
         run: pnpm check:contrast
 
+      # The design sits on a 24px grid; a stray line-height pushes
+      # everything below it off-baseline. This regressed once already.
+      - name: Check baseline grid
+        run: pnpm check:grid
+
       - name: Typecheck
         run: pnpm typecheck
 

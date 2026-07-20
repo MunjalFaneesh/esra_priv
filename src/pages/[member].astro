@@ -1,0 +1,52 @@
+---
+/**
+ * /<slug> — a member's record at the site root, e.g. esra.bot/willcforte.
+ *
+ * This route sits at the root of the URL namespace, so it deliberately
+ * enumerates ONLY known member slugs rather than matching anything. A slug
+ * that collides with a real route is rejected at build time here, and the
+ * content validator reports the same clash in plain English before the
+ * build even starts.
+ */
+import { getCollection } from 'astro:content';
+
+import RegistryPage from '../components/members/RegistryPage.astro';
+import { seededShuffle } from '../lib/order';
+import { memberSlug, isReserved } from '../lib/routes';
+
+export async function getStaticPaths() {
+  const members = seededShuffle((await getCollection('members')).filter((m) => !m.data.inactive));
+
+  const seen = new Map<string, string>();
+
+  for (const member of members) {
+    const slug = memberSlug(member);
+
+    if (isReserved(slug)) {
+      throw new Error(
+        `Member "${member.id}" uses the slug "${slug}", which is a reserved route.\n` +
+          `Member pages are served from the site root, so the slug would collide with ` +
+          `/${slug}.\nPick a different \`handle:\` in src/content/members/${member.id}.md.`
+      );
+    }
+
+    const previous = seen.get(slug);
+    if (previous) {
+      throw new Error(
+        `Members "${previous}" and "${member.id}" both resolve to /${slug}.\n` +
+          `Set a distinct \`handle:\` on one of them.`
+      );
+    }
+    seen.set(slug, member.id);
+  }
+
+  return members.map((member) => ({
+    params: { member: memberSlug(member) },
+    props: { members, selected: member },
+  }));
+}
+
+const { members, selected } = Astro.props;
+---
+
+<RegistryPage members={members} selected={selected} isIndex={false} />

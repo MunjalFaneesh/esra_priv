@@ -1,0 +1,27 @@
+# Home page showcase.
+#
+# Hand-picked items shown above the automatically generated repo and video
+# tiles. Edit this file to change what's featured — no code involved.
+#
+# To feature a LinkedIn post: open the post on LinkedIn, copy the number
+# out of its URL (the digits after `urn:li:activity:` or after
+# `-activity-`), and put it in `activityId`.
+
+- id: rd-leg-progress
+  type: linkedin
+  org: rutgers-dynamics
+  title: Progress on the leg design and motor
+  summary: >-
+    A look at the leg assembly and custom motor as the semester winds down,
+    from the Rutgers Dynamics build log.
+  activityId: '7394171470467223552'
+  url: https://www.linkedin.com/feed/update/urn:li:activity:7394171470467223552/
+  order: 1
+# Also available, if you'd rather feature these:
+#
+# - MakeCU Hackathon write-up (RF + computer-vision cockroach detector)
+#   activityId: '7397434316789731328'
+#
+# A third, newer post exists (7448142486985854976) but is gated behind a
+# LinkedIn sign-in — it has no public content, so it would render an empty
+# card. Left out deliberately.

@@ -92,7 +92,7 @@ const tags = [...new Set(items.flatMap((i) => i.data.tags))].sort();
     font-family: var(--font-display);
     font-size: var(--t-display);
     font-weight: var(--w-bold);
-    line-height: 1.05;
+    line-height: var(--lh-h1);
     letter-spacing: var(--track-snug);
     text-transform: uppercase;
   }
@@ -158,7 +158,7 @@ const tags = [...new Set(items.flatMap((i) => i.data.tags))].sort();
     margin: var(--u-quarter) 0 0;
     font-family: var(--font-mono);
     font-size: var(--t-micro);
-    line-height: 15px;
+    line-height: 15px; /* sub-grid: credit line sits under the tile, outside the text flow */
     color: var(--ink-muted);
   }
 </style>

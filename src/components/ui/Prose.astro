@@ -118,7 +118,7 @@ const { width = 'measure', class: className } = Astro.props;
   .prose :global(pre) {
     font-family: var(--font-mono);
     font-size: var(--t-mono);
-    line-height: 20px;
+    line-height: 20px; /* sub-grid: code blocks set their own rhythm */
     padding: var(--u-half);
     border: var(--rule-width) solid var(--rule);
     background: rgba(255, 255, 255, 0.06);

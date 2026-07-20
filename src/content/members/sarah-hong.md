@@ -1,6 +1,7 @@
 ---
 name: Sarah Hong
 order: 3
+handle: hyuncat
 discipline: Software
 affiliation: Columbia University Robotics Club (CURC)
 avatar: ../../assets/avatars/sarah-hong.jpg

@@ -1,6 +1,7 @@
 ---
 name: Ryan Rudes
 order: 2
+handle: ryanrudes
 discipline: Software
 affiliation: Caltech · Robotic Manipulation Club (RMC)
 avatar: ../../assets/avatars/ryan-rudes.png
