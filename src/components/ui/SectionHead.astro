@@ -22,7 +22,7 @@ const hasAsideSlot = Astro.slots.has('aside');
 ---
 
 <div class:list={['section-head', className]}>
-  <Tag class="title">{title}</Tag>
+  <Tag class="title on-grid">{title}</Tag>
   {
     (aside || hasAsideSlot) && (
       <div class="aside">

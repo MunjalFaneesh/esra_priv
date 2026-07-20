@@ -199,9 +199,16 @@ Fix the file and commit again — nothing else needs doing. Common causes:
 
 ## Prefer a visual editor?
 
-There's one at [esra.bot/admin](https://esra.bot/admin) once it's
-connected — same files, same result, with an upload button and a preview.
-Either route is fine, and you can switch between them freely.
+There's one at [esra.bot/admin](https://esra.bot/admin) — same files, same
+result, with an upload button and a preview. Either route is fine, and you
+can switch between them freely.
+
+You sign in with GitHub, so your post arrives as a pull request from your
+own account, exactly as if you'd added the file by hand. Someone reviews it
+and merges. You'll need to be a member of the `esrabot` organization first.
+
+Setting it up (a one-time job, already done or documented in
+[docs/cms-setup.md](docs/cms-setup.md)) is not something you need to read.
 
 ---
 

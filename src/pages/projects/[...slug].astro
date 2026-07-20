@@ -35,8 +35,8 @@ const repo = project.data.repo ? await getRepo(project.data.repo) : null;
       <MonoLabel as="div" size="sm" track="label">
         Project · {project.data.status}{project.data.revision ? ` · ${project.data.revision}` : ''}
       </MonoLabel>
-      <h1>{project.data.title}</h1>
-      <p class="lede">{project.data.summary}</p>
+      <h1 class="on-grid">{project.data.title}</h1>
+      <p class="lede on-grid">{project.data.summary}</p>
 
       <div class="chips">
         {repo && <LinkChip href={repo.url} platform="github" label={repo.fullName} />}
@@ -83,7 +83,8 @@ const repo = project.data.repo ? await getRepo(project.data.repo) : null;
     margin: var(--u) 0 0;
     font-size: var(--t-h1);
     font-weight: var(--w-semibold);
-    line-height: var(--lh-h1);
+    --lh: var(--lh-h1);
+    line-height: var(--lh);
     letter-spacing: var(--track-tight);
   }
 

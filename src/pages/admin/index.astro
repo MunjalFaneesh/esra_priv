@@ -1,0 +1,47 @@
+---
+/**
+ * The content editor.
+ *
+ * This is a real Astro page rather than a static file in public/, because
+ * public/admin/index.html is only reachable at its full path — /admin
+ * itself 404s in dev and depends on host-specific index resolution in
+ * production. As a page it routes identically everywhere.
+ *
+ * It deliberately does not use BaseLayout: the CMS owns the whole
+ * viewport and the site chrome would only get in its way.
+ *
+ * Config lives in public/admin/config.yml, which Sveltia fetches at
+ * runtime from /admin/config.yml. Setup notes: docs/cms-setup.md.
+ */
+export const prerender = true;
+
+// The bundle is pinned and integrity-checked. It runs on a page that
+// holds a GitHub access token with write access to this repository, so a
+// floating CDN tag would let whatever unpkg serves tomorrow read that
+// token. Bumping the version means recomputing the hash:
+//
+//   curl -sL https://unpkg.com/@sveltia/cms@<version>/dist/sveltia-cms.js \
+//     | openssl dgst -sha384 -binary | openssl base64 -A
+const CMS_VERSION = '0.172.1';
+const CMS_SRI = 'sha384-ITPqKJWlZnytrVwEWWompVPzObjemua5YuLqAxwk0IPEgWymRZM0gczfQnqwWfwY';
+const CMS_SRC = `https://unpkg.com/@sveltia/cms@${CMS_VERSION}/dist/sveltia-cms.js`;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>ESRA — content editor</title>
+    <link rel="icon" href="/favicon.svg" />
+  </head>
+  <body>
+    <script
+      type="module"
+      src={CMS_SRC}
+      integrity={CMS_SRI}
+      crossorigin="anonymous"
+      is:inline
+    ></script>
+  </body>
+</html>

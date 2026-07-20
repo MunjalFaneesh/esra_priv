@@ -163,6 +163,24 @@ const { width = 'measure', class: className } = Astro.props;
     color: var(--ink-muted);
   }
 
+  /*
+   * Baseline correction for generated markdown.
+   *
+   * Authors write plain .md, so there is no markup to hang the .on-grid
+   * utility off — the same maths is applied by selector instead. Kept
+   * last so it wins over the `margin-bottom: 0` on headings above.
+   *
+   * `pre` and `table` are deliberately excluded: both set their own
+   * internal rhythm and are already marked sub-grid.
+   */
+  .prose :global(:is(p, h2, h3, h4, ul, ol, blockquote, figure)) {
+    --_baseline: calc(var(--lh-grid) / 2 + var(--bl-k) * 1em);
+    --_shift: calc(round(up, var(--_baseline), var(--u)) - var(--_baseline));
+
+    padding-top: var(--_shift);
+    margin-bottom: calc(-1 * var(--_shift));
+  }
+
   /* Justified setting suits the document metaphor, but only where there
      is enough measure for it to not open rivers. */
   @media (min-width: 700px) {

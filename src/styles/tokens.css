@@ -145,12 +145,36 @@
    *
    * Headings therefore get an explicit cell count, not a ratio.
    */
-  --lh-tight: 1;
   --lh-grid: 24px; /* 1 cell — the workhorse */
   --lh-snug: 18px; /* sub-grid, for captions and margin notes only */
   --lh-h1: 48px; /* 2 cells — page titles up to 52px */
   --lh-hero: 72px; /* 3 cells — the home hero */
-  --lh-loose: 1.6;
+
+  /* ---------------------------------------------------------------
+   * Baseline correction
+   *
+   * A grid-multiple line height is necessary but NOT sufficient. The
+   * line box is a multiple of 24px, but the baseline sits inside that
+   * box wherever the font's own metrics put it — and IBM Plex Mono is
+   * unusually tall: hhea ascent 1025/1000em, descent 275/1000em, so its
+   * content box is 1.3em, not the ~1.0em most stacks assume.
+   *
+   * With half-leading, the first baseline lands at:
+   *
+   *     baseline = line-height / 2 + (ascent - content/2) * font-size
+   *              = line-height / 2 + 0.375 * font-size
+   *
+   * At 12px mono on a 24px line that is 16.5px — 7.5px short of the
+   * next grid line, almost exactly the third of a cell that showed up
+   * in review. The offset differs per font size, so no single line
+   * height can fix it; each block needs its own correction.
+   *
+   * --bl-k below is (ascent - content/2), read straight out of the woff
+   * file. scripts/check-grid.mjs re-derives it from the font on every
+   * run and fails if this value drifts, so swapping the typeface cannot
+   * silently un-align the site.
+   * ------------------------------------------------------------- */
+  --bl-k: 0.375;
 
   /* Weights */
   --w-regular: 400;

@@ -22,7 +22,7 @@ const build = buildInfo();
 >
   <Section pad="hero">
     <MonoLabel as="div" size="sm" track="label">About this document</MonoLabel>
-    <h1>Colophon</h1>
+    <h1 class="on-grid">Colophon</h1>
   </Section>
 
   <Section pad="normal" last>
@@ -100,7 +100,8 @@ const build = buildInfo();
     font-family: var(--font-display);
     font-size: var(--t-display);
     font-weight: var(--w-bold);
-    line-height: var(--lh-h1);
+    --lh: var(--lh-h1);
+    line-height: var(--lh);
     letter-spacing: var(--track-snug);
     text-transform: uppercase;
   }

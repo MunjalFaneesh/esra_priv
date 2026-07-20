@@ -63,9 +63,9 @@ const schoolCount = new Set(partners.map((p) => p.data.school)).size;
       <div>
         <MonoLabel as="div" size="sm" track="label">Robotics, built in the open</MonoLabel>
 
-        <h1>We ship<br />robots in<br />the open.</h1>
+        <h1 class="on-grid">We ship<br />robots in<br />the open.</h1>
 
-        <p class="lede">
+        <p class="lede on-grid">
           A student-run consortium building fully open-source legged robots — actuators, firmware,
           and field guides. Read the source. Fork the boards.
         </p>
@@ -285,7 +285,8 @@ const schoolCount = new Set(partners.map((p) => p.data.school)).size;
     font-family: var(--font-display);
     font-size: var(--t-hero);
     font-weight: var(--w-bold);
-    line-height: var(--lh-hero);
+    --lh: var(--lh-hero);
+    line-height: var(--lh);
     letter-spacing: var(--track-snug);
     text-transform: uppercase;
   }

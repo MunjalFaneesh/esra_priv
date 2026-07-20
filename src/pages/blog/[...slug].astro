@@ -49,7 +49,7 @@ const dateStr = post.data.date.toISOString().slice(0, 10);
         Build log{post.data.category ? ` · ${post.data.category}` : ''}
       </MonoLabel>
 
-      <h1>{post.data.title}</h1>
+      <h1 class="on-grid">{post.data.title}</h1>
 
       <MonoLabel as="div" size="sm" track="widest" class="byline">
         {
@@ -121,7 +121,8 @@ const dateStr = post.data.date.toISOString().slice(0, 10);
     margin: var(--u) 0 0;
     font-size: var(--t-h1);
     font-weight: var(--w-semibold);
-    line-height: var(--lh-h1);
+    --lh: var(--lh-h1);
+    line-height: var(--lh);
     letter-spacing: var(--track-tight);
   }
 

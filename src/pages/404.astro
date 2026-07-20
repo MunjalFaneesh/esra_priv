@@ -11,8 +11,8 @@ import { NAV } from '../data/site';
 <BaseLayout title="404 — not found" sourcePath="site/404.astro" noindex>
   <Section pad="hero" last>
     <MonoLabel as="div" size="sm" track="label">Error · 404</MonoLabel>
-    <h1>No such<br />resource.</h1>
-    <p class="lede">
+    <h1 class="on-grid">No such<br />resource.</h1>
+    <p class="lede on-grid">
       The path you requested isn't here. It may have moved when the site was rebuilt, or it may
       never have existed.
     </p>
@@ -36,7 +36,8 @@ import { NAV } from '../data/site';
     font-family: var(--font-display);
     font-size: var(--t-display);
     font-weight: var(--w-bold);
-    line-height: var(--lh-h1);
+    --lh: var(--lh-h1);
+    line-height: var(--lh);
     letter-spacing: var(--track-snug);
     text-transform: uppercase;
   }

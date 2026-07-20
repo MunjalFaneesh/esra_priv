@@ -66,8 +66,8 @@ const projects = [...repoless, ...fromRepos];
 >
   <Section pad="hero">
     <MonoLabel as="div" size="sm" track="label">Latest open source</MonoLabel>
-    <h1>Projects</h1>
-    <p class="lede">
+    <h1 class="on-grid">Projects</h1>
+    <p class="lede on-grid">
       Everything below is public. Repository figures come straight from GitHub at build time —
       nothing here is maintained by hand.
     </p>
@@ -127,7 +127,8 @@ const projects = [...repoless, ...fromRepos];
     font-family: var(--font-display);
     font-size: var(--t-display);
     font-weight: var(--w-bold);
-    line-height: var(--lh-h1);
+    --lh: var(--lh-h1);
+    line-height: var(--lh);
     letter-spacing: var(--track-snug);
     text-transform: uppercase;
   }

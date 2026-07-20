@@ -141,6 +141,47 @@ a:hover {
   top: var(--u);
 }
 
+/*
+ * Baseline correction utility.
+ * ----------------------------
+ * Drops a text block onto the 24px grid by nudging it down to the next
+ * grid line and taking the same distance back off the bottom, so the
+ * block occupies exactly the space it did before — only the text inside
+ * it moves. See the --bl-k note in tokens.css for the derivation.
+ *
+ * Usage: add `on-grid` to any element whose line height is a grid
+ * multiple, and set --lh to that line height if it is not --lh-grid.
+ *
+ *     <p class="lede on-grid" style="--lh: var(--lh-grid)">
+ *
+ * 1em resolves against the element's own font size, so one rule covers
+ * every size in the scale — including the clamp()ed display sizes,
+ * which have no fixed value to precompute against.
+ */
+/*
+ * Doubled class is deliberate. Astro emits scoped component styles after
+ * this file, and those rules routinely set shorthand `margin` on the same
+ * elements — a single-class selector here would lose to them and the
+ * correction would silently do nothing. 0-2-0 clears a scoped `.lede`.
+ */
+.on-grid.on-grid {
+  --_lh: var(--lh, var(--lh-grid));
+  --_baseline: calc(var(--_lh) / 2 + var(--bl-k) * 1em);
+  --_shift: calc(round(up, var(--_baseline), var(--u)) - var(--_baseline));
+
+  padding-top: var(--_shift);
+  margin-bottom: calc(-1 * var(--_shift));
+}
+
+/*
+ * The correction assumes normal half-leading. Anything that centres its
+ * own text vertically (a button, a chip) must not be shifted.
+ */
+.on-grid.on-grid:where(button, [role='button'], .chip) {
+  padding-top: 0;
+  margin-bottom: 0;
+}
+
 /* Screen-reader-only utility */
 .sr-only {
   position: absolute;

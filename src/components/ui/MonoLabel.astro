@@ -25,9 +25,23 @@ const {
   upper = true,
   class: className,
 } = Astro.props;
+
+// Baseline correction only means anything on a block box — padding-top on
+// an inline span does not move the text. Inline labels inherit the grid
+// position of whatever line they sit in, which is what we want anyway.
+const onGrid = Tag !== 'span';
 ---
 
-<Tag class:list={['mono-label', `s-${size}`, `t-${tone}`, `k-${track}`, { upper }, className]}>
+<Tag
+  class:list={[
+    'mono-label',
+    `s-${size}`,
+    `t-${tone}`,
+    `k-${track}`,
+    { upper, 'on-grid': onGrid },
+    className,
+  ]}
+>
   <slot />
 </Tag>
 

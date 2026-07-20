@@ -4,17 +4,37 @@
 # repo exactly as a person editing files would. Anything written through
 # /admin can be edited by hand afterwards, and vice versa.
 #
-# To enable: set up a GitHub OAuth app and point `base_url` at an auth
-# backend (Sveltia can use its own hosted one, or you can self-host).
-# Until then, /admin loads but cannot authenticate — the markdown +
-# pull-request workflow in BLOGGING.md works regardless.
+# TWO WAYS IN.
+#
+# 1. Locally, with no setup at all: run `pnpm dev`, open
+#    http://localhost:4321/admin and choose "Work with local repository".
+#    Sveltia reads and writes the files on disk directly through the
+#    browser's File System Access API, so there is no login, no token and
+#    no server. Chrome or Edge only — Firefox and Safari have not shipped
+#    that API. Your edits show up as ordinary uncommitted changes.
+#
+# 2. Live at esra.bot/admin, where editors sign in with GitHub. That needs
+#    an OAuth client, because the browser cannot hold the client secret.
+#    `base_url` below points at it. See docs/cms-setup.md for the steps.
+#
+# Either way this is not a separate database: the CMS commits the same
+# markdown a person editing files by hand would produce.
 
 backend:
   name: github
   repo: esrabot/web
   branch: main
-  # Opens a pull request instead of committing straight to main, so posts
-  # get a Vercel preview and a review before they are public.
+
+  # The OAuth relay that turns a GitHub login into a token. Uncomment and
+  # set this to your deployed Worker URL — until then, sign-in is
+  # unavailable and only local mode (1 above) works.
+  # base_url: https://sveltia-cms-auth.<subdomain>.workers.dev
+
+  # Editors sign in as themselves, so every commit and pull request is
+  # attributed to their own GitHub account rather than to a shared bot.
+  # This requires write access to esrabot/web — add contributors to the
+  # org first. Set to `true` instead to let people without access propose
+  # changes from a fork.
   open_authoring: false
   squash_merges: true
 
