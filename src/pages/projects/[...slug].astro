@@ -1,0 +1,127 @@
+---
+/**
+ * A curated project page — for work that needs more than a repo card,
+ * or that has no repo of its own yet.
+ */
+import { getCollection, render } from 'astro:content';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Prose from '../../components/ui/Prose.astro';
+import MonoLabel from '../../components/ui/MonoLabel.astro';
+import LinkChip from '../../components/ui/LinkChip.astro';
+import { mdxComponents } from '../../components/blog';
+import { getRepo, relativeTime } from '../../lib/github';
+
+export async function getStaticPaths() {
+  const projects = (await getCollection('projects')).filter(
+    (p) => import.meta.env.DEV || !p.data.draft
+  );
+  return projects.map((project) => ({ params: { slug: project.id }, props: { project } }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+
+const repo = project.data.repo ? await getRepo(project.data.repo) : null;
+---
+
+<BaseLayout
+  title={project.data.title}
+  description={project.data.summary}
+  sourcePath={`content/projects/${project.id}.md`}
+>
+  <article class="project">
+    <header>
+      <MonoLabel as="div" size="sm" track="label">
+        Project · {project.data.status}{project.data.revision ? ` · ${project.data.revision}` : ''}
+      </MonoLabel>
+      <h1>{project.data.title}</h1>
+      <p class="lede">{project.data.summary}</p>
+
+      <div class="chips">
+        {repo && <LinkChip href={repo.url} platform="github" label={repo.fullName} />}
+        {project.data.links.map((l) => <LinkChip href={l.url} label={l.label} />)}
+        {
+          project.data.bom && (
+            <LinkChip href={`/docs/${project.data.bom.id}`} label="Bill of materials" />
+          )
+        }
+      </div>
+
+      {
+        repo && (
+          <MonoLabel as="div" size="micro" track="wide" class="repo-meta">
+            {[repo.language, `★ ${repo.stars}`, `updated ${relativeTime(repo.pushedAt)}`]
+              .filter(Boolean)
+              .join(' · ')}
+          </MonoLabel>
+        )
+      }
+    </header>
+
+    <div class="body">
+      <Prose width="full">
+        <Content components={mdxComponents} />
+      </Prose>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .project {
+    padding: var(--u-3) var(--u-2) var(--u-2);
+    max-width: var(--measure-wide);
+    margin: 0 auto;
+  }
+
+  header {
+    padding-bottom: var(--u-2);
+    border-bottom: var(--rule-width) solid var(--rule);
+  }
+
+  h1 {
+    margin: var(--u) 0 0;
+    font-size: var(--t-h1);
+    font-weight: var(--w-semibold);
+    line-height: 1.1;
+    letter-spacing: var(--track-tight);
+  }
+
+  .lede {
+    margin: var(--u) 0 0;
+    max-width: var(--measure);
+    font-size: var(--t-md);
+    line-height: var(--lh-grid);
+    color: var(--ink-body);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: var(--u);
+  }
+
+  header :global(.repo-meta) {
+    display: block;
+    margin-top: var(--u-half);
+  }
+
+  .body {
+    position: relative;
+    padding-right: var(--margin-gutter);
+    margin-top: var(--u-2);
+  }
+
+  @media (max-width: 1000px) {
+    .body {
+      padding-right: 0;
+    }
+  }
+
+  @media (max-width: 860px) {
+    .project {
+      padding: var(--u-2) var(--u) var(--u);
+    }
+  }
+</style>

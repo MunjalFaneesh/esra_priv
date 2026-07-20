@@ -21,9 +21,7 @@ interface Props {
 const { youtube, url, title = 'Embedded video', caption } = Astro.props;
 
 // youtube-nocookie serves the same player without setting tracking cookies.
-const embedUrl = youtube
-  ? `https://www.youtube-nocookie.com/embed/${youtube}?autoplay=1`
-  : url;
+const embedUrl = youtube ? `https://www.youtube-nocookie.com/embed/${youtube}?autoplay=1` : url;
 
 // Thumbnails come from a separate image host that sets no cookies.
 const poster = youtube ? `https://i.ytimg.com/vi/${youtube}/hqdefault.jpg` : undefined;

@@ -20,7 +20,13 @@ const { n } = Astro.props;
 
 <div class="eq" role="math">
   <span class="body"><slot /></span>
-  {n && <span class="num" aria-hidden="true">({n})</span>}
+  {
+    n && (
+      <span class="num" aria-hidden="true">
+        ({n})
+      </span>
+    )
+  }
 </div>
 
 <style>

@@ -1,0 +1,179 @@
+# Sveltia CMS — a visual editor over the same git workflow.
+#
+# Nothing here is a separate database: the CMS commits markdown to this
+# repo exactly as a person editing files would. Anything written through
+# /admin can be edited by hand afterwards, and vice versa.
+#
+# To enable: set up a GitHub OAuth app and point `base_url` at an auth
+# backend (Sveltia can use its own hosted one, or you can self-host).
+# Until then, /admin loads but cannot authenticate — the markdown +
+# pull-request workflow in BLOGGING.md works regardless.
+
+backend:
+  name: github
+  repo: esrabot/web
+  branch: main
+  # Opens a pull request instead of committing straight to main, so posts
+  # get a Vercel preview and a review before they are public.
+  open_authoring: false
+  squash_merges: true
+
+# Editorial workflow puts new entries into a draft -> review -> publish
+# pipeline backed by pull requests.
+publish_mode: editorial_workflow
+
+media_folder: src/assets/blog
+public_folder: ../../assets/blog
+
+collections:
+  - name: blog
+    label: Blog posts
+    label_singular: blog post
+    folder: src/content/blog
+    create: true
+    slug: '{{slug}}'
+    extension: md
+    format: yaml-frontmatter
+    preview_path: blog/{{slug}}
+    summary: '{{title}} — {{date | date("yyyy-MM-dd")}}'
+    fields:
+      - { name: title, label: Title, widget: string }
+      - {
+          name: description,
+          label: Summary,
+          widget: text,
+          required: false,
+          hint: 'One or two sentences. Shown on the blog index and in the RSS feed.',
+        }
+      - { name: date, label: Date, widget: datetime, date_format: 'yyyy-MM-dd', time_format: false }
+      - {
+          name: authors,
+          label: Authors,
+          widget: relation,
+          collection: members,
+          search_fields: [name],
+          value_field: '{{slug}}',
+          display_fields: [name],
+          multiple: true,
+          hint: 'Pick from the members list. Add yourself under Members first if you are not there.',
+        }
+      - { name: category, label: Category, widget: string, required: false }
+      - { name: tags, label: Tags, widget: list, required: false }
+      - {
+          name: cover,
+          label: Cover image,
+          widget: image,
+          required: false,
+          hint: 'Large images are fine — they are resized automatically.',
+        }
+      - {
+          name: coverAlt,
+          label: Cover description,
+          widget: string,
+          required: false,
+          hint: 'Describe the image for readers using a screen reader.',
+        }
+      - {
+          name: org,
+          label: Organisation,
+          widget: select,
+          options:
+            [{ label: ESRA, value: esra }, { label: Rutgers Dynamics, value: rutgers-dynamics }],
+          default: esra,
+        }
+      - { name: draft, label: Draft, widget: boolean, default: false }
+      - { name: body, label: Body, widget: markdown }
+
+  - name: members
+    label: Members
+    label_singular: member
+    folder: src/content/members
+    create: true
+    slug: '{{slug}}'
+    extension: md
+    format: yaml-frontmatter
+    media_folder: ../../assets/avatars
+    public_folder: ../../assets/avatars
+    fields:
+      - { name: name, label: Full name, widget: string }
+      - { name: order, label: Sort order, widget: number, default: 100 }
+      - {
+          name: discipline,
+          label: Discipline,
+          widget: string,
+          required: false,
+          hint: 'e.g. Mechanical, Software',
+        }
+      - {
+          name: affiliation,
+          label: Affiliation,
+          widget: string,
+          required: false,
+          hint: 'Your club and school, e.g. Rutgers Dynamics',
+        }
+      - { name: avatar, label: Photo, widget: image, required: false }
+      - { name: pronouns, label: Pronouns, widget: string, required: false }
+      - name: roles
+        label: Roles
+        widget: list
+        required: false
+        fields:
+          - { name: org, label: Organisation, widget: select, options: [esra, rutgers-dynamics] }
+          - {
+              name: title,
+              label: Title,
+              widget: string,
+              required: false,
+              hint: 'e.g. Co-director. Leave blank if you hold no officer role.',
+            }
+      - name: links
+        label: Links
+        widget: list
+        required: false
+        fields:
+          - name: platform
+            label: Platform
+            widget: select
+            options: [website, github, linkedin, youtube, instagram, x, bluesky, email, linktree]
+          - { name: handle, label: Display text, widget: string, required: false }
+          - {
+              name: url,
+              label: URL,
+              widget: string,
+              hint: 'Full URL. For email use mailto:you@example.com',
+            }
+      - { name: inactive, label: Inactive, widget: boolean, default: false }
+      - { name: body, label: Bio, widget: markdown }
+
+  - name: gallery
+    label: Gallery
+    files:
+      - name: items
+        label: Gallery items
+        file: src/content/gallery.yaml
+        fields:
+          - name: items
+            label: Items
+            widget: list
+            fields:
+              - { name: id, label: ID, widget: string, hint: 'Lowercase, hyphenated, unique.' }
+              - { name: type, label: Type, widget: select, options: [image, video], default: image }
+              - { name: title, label: Title, widget: string }
+              - {
+                  name: date,
+                  label: Date,
+                  widget: datetime,
+                  date_format: 'yyyy-MM-dd',
+                  time_format: false,
+                }
+              - { name: src, label: File path, widget: string }
+              - { name: alt, label: Description, widget: string, required: false }
+              - { name: category, label: Category, widget: string, required: false }
+              - { name: tags, label: Tags, widget: list, required: false }
+              - {
+                  name: credits,
+                  label: Credits,
+                  widget: string,
+                  required: false,
+                  hint: 'Who designed, built, and photographed it. Please keep this accurate.',
+                }

@@ -64,7 +64,9 @@ const roleLine = selected.data.roles
                     {[m.data.discipline, m.data.affiliation].filter(Boolean).join(' · ')}
                   </span>
                 </span>
-                <span class="mark" aria-hidden="true">{isSelected ? '●' : '○'}</span>
+                <span class="mark" aria-hidden="true">
+                  {isSelected ? '●' : '○'}
+                </span>
               </a>
             </li>
           );
@@ -79,13 +81,7 @@ const roleLine = selected.data.roles
       <div class="avatar">
         {
           selected.data.avatar ? (
-            <Image
-              src={selected.data.avatar}
-              alt=""
-              width={192}
-              height={192}
-              class="avatar-img"
-            />
+            <Image src={selected.data.avatar} alt="" width={192} height={192} class="avatar-img" />
           ) : (
             <span class="avatar-initials" aria-hidden="true">
               {initials(selected.data.name)}
@@ -100,11 +96,13 @@ const roleLine = selected.data.roles
           {roleLine || selected.data.discipline || 'Member'} · {memberCode(selected.data.order)}
         </MonoLabel>
         <h2>{selected.data.name}</h2>
-        {selected.data.affiliation && (
-          <MonoLabel as="div" size="sm" track="wide" upper={false}>
-            {selected.data.affiliation}
-          </MonoLabel>
-        )}
+        {
+          selected.data.affiliation && (
+            <MonoLabel as="div" size="sm" track="wide" upper={false}>
+              {selected.data.affiliation}
+            </MonoLabel>
+          )
+        }
       </div>
     </header>
 
@@ -116,11 +114,7 @@ const roleLine = selected.data.roles
       selected.data.links.length > 0 ? (
         <div class="links">
           {selected.data.links.map((link) => (
-            <LinkChip
-              href={link.url}
-              platform={link.platform}
-              label={link.handle ?? undefined}
-            />
+            <LinkChip href={link.url} platform={link.platform} label={link.handle ?? undefined} />
           ))}
         </div>
       ) : (

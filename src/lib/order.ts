@@ -44,9 +44,7 @@ function hashString(input: string): number {
  */
 export function buildSeed(): string {
   return (
-    process.env.VERCEL_GIT_COMMIT_SHA ??
-    process.env.GITHUB_SHA ??
-    'local-development-stable-seed'
+    process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA ?? 'local-development-stable-seed'
   );
 }
 

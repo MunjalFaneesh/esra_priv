@@ -27,9 +27,14 @@ const build = buildInfo();
   <MonoLabel size="micro" track="widest">
     {
       foot ? (
-        <>&copy; {new Date().getFullYear()} {SITE.name} &middot; esra.bot &middot; bg {SITE.colorRef}</>
+        <>
+          &copy; {new Date().getFullYear()} {SITE.name} &middot; esra.bot &middot; bg{' '}
+          {SITE.colorRef}
+        </>
       ) : (
-        <>{SITE.name} &middot; {path}</>
+        <>
+          {SITE.name} &middot; {path}
+        </>
       )
     }
   </MonoLabel>
@@ -38,14 +43,24 @@ const build = buildInfo();
     {
       build.sha ? (
         <>
-          <span>&#8903; {build.ref}@{build.sha}</span>
-          <a href={build.commitUrl} rel="noopener">commit &#8599;</a>
+          <span>
+            &#8903; {build.ref}@{build.sha}
+          </span>
+          <a href={build.commitUrl} rel="noopener">
+            commit &#8599;
+          </a>
         </>
       ) : (
         <span>&#8903; local build &middot; {build.date}</span>
       )
     }
-    {!foot && <a href={sourceHref} rel="noopener">source &#8599;</a>}
+    {
+      !foot && (
+        <a href={sourceHref} rel="noopener">
+          source &#8599;
+        </a>
+      )
+    }
   </MonoLabel>
 </div>
 

@@ -164,9 +164,7 @@ export function getOrgRepos(org = 'esrabot'): Promise<RepoInfo[]> {
 
 /** One repo by `owner/name`, or by bare name within the default org. */
 export async function getRepo(nameOrFullName: string): Promise<RepoInfo | null> {
-  const full = nameOrFullName.includes('/')
-    ? nameOrFullName
-    : `esrabot/${nameOrFullName}`;
+  const full = nameOrFullName.includes('/') ? nameOrFullName : `esrabot/${nameOrFullName}`;
   const all = await getOrgRepos(full.split('/')[0]);
   return all.find((r) => r.fullName.toLowerCase() === full.toLowerCase()) ?? null;
 }

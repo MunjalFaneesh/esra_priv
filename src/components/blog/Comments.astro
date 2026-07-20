@@ -58,8 +58,10 @@ const configured = Boolean(REPO_ID && CATEGORY_ID);
       <div class="placeholder">
         <p>
           Comments run on GitHub Discussions. Once Discussions is enabled on
-          <a href={SITE.repoUrl} rel="noopener">{SITE.repo}</a> and the giscus IDs are set,
-          threads appear here automatically.
+          <a href={SITE.repoUrl} rel="noopener">
+            {SITE.repo}
+          </a>{' '}
+          and the giscus IDs are set, threads appear here automatically.
         </p>
         <MonoLabel size="micro" track="wide">
           set PUBLIC_GISCUS_REPO_ID and PUBLIC_GISCUS_CATEGORY_ID

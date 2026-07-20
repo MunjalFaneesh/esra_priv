@@ -145,9 +145,7 @@ const projects = defineCollection({
       cover: image().optional(),
       /** Hardware revision, e.g. "rev D". */
       revision: z.string().optional(),
-      links: z
-        .array(z.object({ label: z.string(), url: z.string() }))
-        .default([]),
+      links: z.array(z.object({ label: z.string(), url: z.string() })).default([]),
       /** Bill of materials, by BOM collection ID. */
       bom: reference('boms').optional(),
       order: z.number().default(100),

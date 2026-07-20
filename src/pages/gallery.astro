@@ -1,0 +1,164 @@
+---
+/**
+ * Gallery.
+ *
+ * Attribution is shown on every item that has it — the old site recorded
+ * credits carefully and several parts were designed by people outside the
+ * core team, so dropping them in a redesign would be a real loss.
+ */
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/ui/Section.astro';
+import SectionHead from '../components/ui/SectionHead.astro';
+import MonoLabel from '../components/ui/MonoLabel.astro';
+import DataGrid from '../components/ui/DataGrid.astro';
+import { resolveAsset } from '../lib/assets';
+
+const items = (await getCollection('gallery')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+
+const tags = [...new Set(items.flatMap((i) => i.data.tags))].sort();
+---
+
+<BaseLayout
+  title="Gallery"
+  description="Photographs and video of ESRA hardware — actuators, legs, and test rigs."
+  sourcePath="content/gallery.yaml"
+  wide
+>
+  <Section pad="hero">
+    <MonoLabel as="div" size="sm" track="label">Hardware · documented</MonoLabel>
+    <h1>Gallery</h1>
+    <p class="lede">
+      Photographs and video of the hardware as it was actually built. Credits are recorded with each
+      item.
+    </p>
+    <MonoLabel as="div" size="micro" track="wide" class="counts">
+      N={items.length} · {tags.length} tags
+    </MonoLabel>
+  </Section>
+
+  <Section pad="normal" last>
+    <SectionHead title="All items" aside={`${items.length} items`} />
+    <DataGrid min="280px">
+      {
+        items.map((item) => {
+          const asset = item.data.type === 'image' ? resolveAsset(item.data.src) : undefined;
+          return (
+            <figure class="item">
+              <div class="well">
+                {item.data.type === 'video' ? (
+                  <video
+                    src={item.data.src}
+                    poster={item.data.poster}
+                    controls
+                    preload="metadata"
+                    playsinline
+                  />
+                ) : asset ? (
+                  <Image src={asset} alt={item.data.alt ?? ''} width={720} loading="lazy" />
+                ) : (
+                  <img src={item.data.src} alt={item.data.alt ?? ''} loading="lazy" />
+                )}
+                <span class="kind">{item.data.type}</span>
+              </div>
+
+              <figcaption>
+                <strong>{item.data.title}</strong>
+                <MonoLabel as="div" size="micro" track="wide" upper={false}>
+                  <time datetime={item.data.date.toISOString()}>
+                    {item.data.date.toISOString().slice(0, 10)}
+                  </time>
+                  {item.data.tags.length > 0 && (
+                    <> · {item.data.tags.map((t) => `#${t}`).join(' ')}</>
+                  )}
+                </MonoLabel>
+                {item.data.credits && <p class="credits">{item.data.credits}</p>}
+              </figcaption>
+            </figure>
+          );
+        })
+      }
+    </DataGrid>
+  </Section>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin: var(--u) 0 0;
+    font-family: var(--font-display);
+    font-size: var(--t-display);
+    font-weight: var(--w-bold);
+    line-height: 1.05;
+    letter-spacing: var(--track-snug);
+    text-transform: uppercase;
+  }
+
+  .lede {
+    margin: var(--u) 0 0;
+    max-width: 456px;
+    font-size: var(--t-md);
+    line-height: var(--lh-grid);
+    color: var(--ink-body);
+  }
+
+  :global(.counts) {
+    display: block;
+    margin-top: var(--u);
+  }
+
+  .item {
+    margin: 0;
+  }
+
+  .well {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--sheet-sunk);
+    border-bottom: var(--rule-width) solid var(--rule);
+  }
+
+  .well :global(img),
+  .well video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.08);
+  }
+
+  .kind {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: var(--track-widest);
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--ink-inverse);
+    padding: 3px 6px;
+  }
+
+  figcaption {
+    padding: var(--u-half) var(--u);
+  }
+
+  figcaption strong {
+    display: block;
+    font-size: var(--t-md);
+    font-weight: var(--w-semibold);
+    line-height: var(--lh-grid);
+  }
+
+  .credits {
+    margin: var(--u-quarter) 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+    line-height: 15px;
+    color: var(--ink-muted);
+  }
+</style>

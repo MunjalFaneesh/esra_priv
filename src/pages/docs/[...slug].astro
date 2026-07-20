@@ -1,0 +1,94 @@
+---
+/**
+ * A guide. Same MDX vocabulary as blog posts, without the byline chrome.
+ */
+import { getCollection, render } from 'astro:content';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Prose from '../../components/ui/Prose.astro';
+import MonoLabel from '../../components/ui/MonoLabel.astro';
+import { mdxComponents } from '../../components/blog';
+
+export async function getStaticPaths() {
+  const docs = (await getCollection('docs')).filter((d) => import.meta.env.DEV || !d.data.draft);
+  return docs.map((doc) => ({ params: { slug: doc.id }, props: { doc } }));
+}
+
+const { doc } = Astro.props;
+const { Content } = await render(doc);
+---
+
+<BaseLayout
+  title={doc.data.title}
+  description={doc.data.description ?? doc.data.title}
+  sourcePath={`content/docs/${doc.id}.mdx`}
+>
+  <article class="doc">
+    <header>
+      <MonoLabel as="div" size="sm" track="label">
+        Field guide{doc.data.duration ? ` · ${doc.data.duration}` : ''}
+      </MonoLabel>
+      <h1>{doc.data.title}</h1>
+      {doc.data.description && <p class="lede">{doc.data.description}</p>}
+    </header>
+
+    <div class="body">
+      <Prose width="full">
+        <Content components={mdxComponents} />
+      </Prose>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .doc {
+    padding: var(--u-3) var(--u-2) var(--u-2);
+    max-width: var(--measure-wide);
+    margin: 0 auto;
+  }
+
+  header {
+    padding-bottom: var(--u-2);
+    border-bottom: var(--rule-width) solid var(--rule);
+  }
+
+  h1 {
+    margin: var(--u) 0 0;
+    font-size: var(--t-h1);
+    font-weight: var(--w-semibold);
+    line-height: 1.1;
+    letter-spacing: var(--track-tight);
+  }
+
+  .lede {
+    margin: var(--u) 0 0;
+    max-width: var(--measure);
+    font-size: var(--t-md);
+    line-height: var(--lh-grid);
+    color: var(--ink-body);
+  }
+
+  .body {
+    position: relative;
+    padding-right: var(--margin-gutter);
+    margin-top: var(--u-2);
+  }
+
+  @media (max-width: 1000px) {
+    .body {
+      padding-right: 0;
+    }
+  }
+
+  @media (max-width: 860px) {
+    .doc {
+      padding: var(--u-2) var(--u) var(--u);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .doc {
+      padding: var(--u-2) var(--u-half) var(--u);
+    }
+  }
+</style>

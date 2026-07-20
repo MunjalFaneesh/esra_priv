@@ -19,7 +19,7 @@ const { grid = true, wide = false, class: className } = Astro.props;
 
 <div class="field">
   <div class:list={['sheet', { wide }, className]}>
-    {grid && <div class="grid-overlay" aria-hidden="true" data-grid-overlay></div>}
+    {grid && <div class="grid-overlay" aria-hidden="true" data-grid-overlay />}
     <div class="sheet-content">
       <slot />
     </div>

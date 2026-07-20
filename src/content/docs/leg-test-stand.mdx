@@ -1,0 +1,68 @@
+---
+title: Leg test stand — prototype build
+description: An early prototype test stand for a single leg, with the full bill of materials.
+order: 1
+duration: 12 min
+---
+
+This is the early prototype test stand used to bring up a single leg. It is
+documented here so it can be rebuilt from the parts list alone.
+
+<Callout kind="note" title="Status">
+  This is a prototype, not a finished design. Several lines in the BOM are still
+  outstanding, and the timing-belt drive has not been fully specified.
+</Callout>
+
+## Stand
+
+The stand is built around two 800&nbsp;mm SBR20 linear rails with four SBR20UU
+blocks, which gives a vertical axis long enough to let the leg travel through a
+full stride without hitting a limit.
+
+<Fig
+  src="gallery/leg-test-stand.jpg"
+  alt="The leg test stand assembled on a linear slide."
+  plate="FIG.1 — TEST STAND"
+  caption="**Figure 1.** Leg test stand. Designed by Luis Serrano Laguna. Photo by Ryan Rudes."
+/>
+
+## Actuators
+
+Three quasi-direct-drive actuators drive the leg. Each is built around an 8110
+stator, hand-wound, running on a Flipsky ODESC V4.2 controller in field-oriented
+control.
+
+<Spec
+  title="Actuator, as built"
+  items={[
+    ['Stator', '8110'],
+    ['Magnets', '12x5x3 mm, N52, 42 per rotor'],
+    ['Winding', '26 AWG enamelled copper'],
+    ['Controller', 'Flipsky ODESC V4.2, 24 V'],
+    ['Printed parts', 'PETG, Bambu X1C'],
+  ]}
+/>
+
+<MarginNote n="1">
+  Magnet count is 42 per rotor, 126 across the three actuators. The BOM records
+  this as `42 x 3 = 126` — the expression is kept rather than flattened, because
+  it carries the per-unit reasoning.
+</MarginNote>
+
+Rotors, planetary gears, the planet holder, stator lock, outer housing and ring
+gear, bearing retaining ring, and backplate are all printed. The magnet holders
+are laser-cut from 1.2&nbsp;mm A36/1008 mild steel.<sup>1</sup>
+
+## Bill of materials
+
+Everything needed to rebuild the stand and its three actuators. Filled circles
+are purchased; open circles are outstanding.
+
+<BOM id="leg-test-stand" />
+
+## Reproducing this
+
+Every printed part and every purchased component is listed above, with vendor
+links and CAD models where they exist. If you build one and find a better part —
+particularly for the timing-belt drive, which is still open — open a pull
+request against this page.

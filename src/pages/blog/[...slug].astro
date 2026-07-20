@@ -72,7 +72,9 @@ const dateStr = post.data.date.toISOString().slice(0, 10);
     {
       post.data.description && (
         <div class="abstract">
-          <MonoLabel as="div" size="micro" track="label">Abstract</MonoLabel>
+          <MonoLabel as="div" size="micro" track="label">
+            Abstract
+          </MonoLabel>
           <p>{post.data.description}</p>
         </div>
       )

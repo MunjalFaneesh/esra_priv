@@ -20,7 +20,7 @@ links:
     handle: in/willcforte
     url: https://www.linkedin.com/in/willcforte/
   - platform: x
-    handle: "@willcforte"
+    handle: '@willcforte'
     url: https://x.com/willcforte
   - platform: email
     handle: willcforte@gmail.com

@@ -27,9 +27,13 @@ const siteLinks = NAV.filter((n) => !n.mono);
     <nav class="col" aria-label="Site">
       <MonoLabel as="div" size="micro" class="col-head">Site</MonoLabel>
       <ul>
-        {siteLinks.map(({ label, href }) => (
-          <li><a href={href}>{label}</a></li>
-        ))}
+        {
+          siteLinks.map(({ label, href }) => (
+            <li>
+              <a href={href}>{label}</a>
+            </li>
+          ))
+        }
       </ul>
     </nav>
 
@@ -46,7 +50,9 @@ const siteLinks = NAV.filter((n) => !n.mono);
     {
       ORGS.map((org) => (
         <nav class="col" aria-label={`${org.name} channels`}>
-          <MonoLabel as="div" size="micro" class="col-head">{org.name}</MonoLabel>
+          <MonoLabel as="div" size="micro" class="col-head">
+            {org.name}
+          </MonoLabel>
           <ul>
             {org.links
               .filter((l) => l.platform !== 'website' || org.id !== 'esra')

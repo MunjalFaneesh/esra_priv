@@ -86,7 +86,12 @@ const structuredData = {
     {publishedAt && <meta property="article:published_time" content={publishedAt.toISOString()} />}
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="alternate" type="application/rss+xml" title={`${SITE.name} — all updates`} href="/rss.xml" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={`${SITE.name} — all updates`}
+      href="/rss.xml"
+    />
 
     <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   </head>

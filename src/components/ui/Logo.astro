@@ -18,7 +18,12 @@ interface Props {
 }
 
 const { height = 24, label = 'ESRA', class: className } = Astro.props;
-const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' };
+
+// A labelled mark is an image; an unlabelled one is decorative and hidden
+// from assistive tech, so its accessible name comes from the link around it.
+const a11y = label
+  ? ({ role: 'img', 'aria-label': label } as const)
+  : ({ 'aria-hidden': 'true' } as const);
 ---
 
 <svg

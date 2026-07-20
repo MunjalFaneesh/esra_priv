@@ -62,8 +62,8 @@ const description = isIndex
         <MonoLabel as="div" size="sm" track="label">Core collaborators · registry</MonoLabel>
         <h1>Members</h1>
         <p class="lede">
-          The people building ESRA in the open, across affiliated clubs and schools. Select a
-          name to read their record and find them elsewhere.
+          The people building ESRA in the open, across affiliated clubs and schools. Select a name
+          to read their record and find them elsewhere.
         </p>
       </div>
       <MonoLabel as="div" size="micro" track="wide" class="counts">
@@ -83,8 +83,12 @@ const description = isIndex
         partners.map((p) => (
           <a class="club" href={p.data.url} rel="noopener" target="_blank">
             <div class="club-top">
-              <MonoLabel size="micro" track="wide">{p.data.abbr ?? p.data.school}</MonoLabel>
-              <span class="arrow" aria-hidden="true">&#8599;</span>
+              <MonoLabel size="micro" track="wide">
+                {p.data.abbr ?? p.data.school}
+              </MonoLabel>
+              <span class="arrow" aria-hidden="true">
+                &#8599;
+              </span>
             </div>
             <div class="club-name">{p.data.name}</div>
             <MonoLabel as="div" size="micro" track="wide" upper={false} class="club-meta">

@@ -27,9 +27,7 @@ const {
 } = Astro.props;
 ---
 
-<Tag
-  class:list={['mono-label', `s-${size}`, `t-${tone}`, `k-${track}`, { upper }, className]}
->
+<Tag class:list={['mono-label', `s-${size}`, `t-${tone}`, `k-${track}`, { upper }, className]}>
   <slot />
 </Tag>
 

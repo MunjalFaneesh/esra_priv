@@ -9,8 +9,7 @@ import { ESRA } from './orgs';
  * Canonical origin. Mirrors the value in astro.config.mjs — that one feeds
  * the sitemap and RSS builders, this one is for runtime template use.
  */
-export const SITE_URL =
-  import.meta.env.SITE ?? process.env.SITE_URL ?? 'https://esra.bot';
+export const SITE_URL = import.meta.env.SITE ?? process.env.SITE_URL ?? 'https://esra.bot';
 
 export const SITE = {
   name: ESRA.name,
@@ -47,10 +46,8 @@ export const NAV: { label: string; href: string; mono?: boolean }[] = [
  * they fall back to a dev marker rather than a fabricated hash.
  */
 export function buildInfo() {
-  const sha =
-    process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA ?? null;
-  const ref =
-    process.env.VERCEL_GIT_COMMIT_REF ?? process.env.GITHUB_REF_NAME ?? 'main';
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA ?? null;
+  const ref = process.env.VERCEL_GIT_COMMIT_REF ?? process.env.GITHUB_REF_NAME ?? 'main';
 
   return {
     ref,

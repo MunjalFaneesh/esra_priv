@@ -18,7 +18,7 @@
   alt: Exterior view of a 3D-printed quasi-direct-drive actuator.
   category: Hardware
   tags: [custom-actuator]
-  credits: "Designed by Nachum Twersky. Built by CCBR. Photo: Ryan Rudes."
+  credits: 'Designed by Nachum Twersky. Built by CCBR. Photo: Ryan Rudes.'
 
 - id: custom-actuator-internal
   type: image
@@ -28,7 +28,7 @@
   alt: Internal view of the actuator showing the hand-wound stator.
   category: Hardware
   tags: [custom-actuator]
-  credits: "Designed by Nachum Twersky. Built by CCBR. Photo: Ryan Rudes."
+  credits: 'Designed by Nachum Twersky. Built by CCBR. Photo: Ryan Rudes.'
 
 - id: box-of-actuators
   type: image
@@ -40,7 +40,7 @@
   alt: A box holding several completed custom actuators.
   category: Hardware
   tags: [custom-actuator]
-  credits: "Designed by Nachum Twersky. Built by CCBR. Photo: Ryan Rudes."
+  credits: 'Designed by Nachum Twersky. Built by CCBR. Photo: Ryan Rudes.'
 
 - id: spinning-custom-actuator
   type: video
@@ -50,7 +50,7 @@
   alt: A custom actuator spinning under power on the bench.
   category: Hardware
   tags: [custom-actuator]
-  credits: "Designed by Nachum Twersky. Built by CCBR."
+  credits: 'Designed by Nachum Twersky. Built by CCBR.'
 
 - id: leg-integration-test
   type: video
@@ -60,7 +60,7 @@
   alt: The 3-DoF leg running on the test stand.
   category: Hardware
   tags: [leg]
-  credits: "Designed and built by CCBR."
+  credits: 'Designed and built by CCBR.'
 
 - id: mini-pi-robot
   type: image
@@ -81,7 +81,7 @@
   alt: A fully assembled custom actuator.
   category: Hardware
   tags: [custom-actuator]
-  credits: "Designed by Nachum Twersky. Built by CCBR. Photo: Ryan Rudes."
+  credits: 'Designed by Nachum Twersky. Built by CCBR. Photo: Ryan Rudes.'
 
 - id: leg-test-stand
   type: image
@@ -93,4 +93,4 @@
   alt: The leg test stand assembled on a linear slide.
   category: Hardware
   tags: [leg, test-stand]
-  credits: "Designed by Luis Serrano Laguna. Photo by Ryan Rudes."
+  credits: 'Designed by Luis Serrano Laguna. Photo by Ryan Rudes.'

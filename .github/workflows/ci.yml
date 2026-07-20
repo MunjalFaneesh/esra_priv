@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A newer push supersedes an in-flight run on the same branch.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Fails with a plain-English message naming the file and field, so a
+      # contributor who has never written TypeScript can fix their own post.
+      - name: Validate content
+        run: pnpm validate:content
+
+      # Guards the design system's readability floor. See the note in
+      # tokens.css: lifting the background alone cannot fix contrast here.
+      - name: Check colour contrast
+        run: pnpm check:contrast
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        env:
+          # Lets the build read repo metadata at the authenticated rate
+          # limit. Falls back to unauthenticated if absent.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm build
+
+      # Catches internal links that point at pages which no longer exist —
+      # the failure mode that broke /team on the old site.
+      - name: Check internal links
+        run: pnpm validate:links
+
+      - name: Formatting
+        run: pnpm format:check

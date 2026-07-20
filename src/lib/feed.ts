@@ -9,12 +9,7 @@ import rss, { type RSSFeedItem } from '@astrojs/rss';
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 
 import { SITE } from '../data/site';
-import {
-  imageEnclosure,
-  publicFileEnclosure,
-  embedMedia,
-  type FeedMedia,
-} from './feed-media';
+import { imageEnclosure, publicFileEnclosure, embedMedia, type FeedMedia } from './feed-media';
 
 /** Escape text destined for an XML attribute or node. */
 function xml(value: string): string {
@@ -38,9 +33,7 @@ async function mediaFor(
 ): Promise<{ primary: FeedMedia | null; extra: FeedMedia[] }> {
   const extra: FeedMedia[] = [];
 
-  const primary = post.data.cover
-    ? await imageEnclosure(post.data.cover, post.id, site)
-    : null;
+  const primary = post.data.cover ? await imageEnclosure(post.data.cover, post.id, site) : null;
 
   for (const item of post.data.media) {
     if (item.type === 'embed') {
@@ -121,9 +114,7 @@ export async function buildFeed({ site, org, title, description }: FeedOptions) 
         ...(primary
           ? { enclosure: { url: primary.url, type: primary.mime, length: primary.length } }
           : {}),
-        customData:
-          `<dc:creator>${xml(byline)}</dc:creator>` +
-          mediaXml(primary, extra),
+        customData: `<dc:creator>${xml(byline)}</dc:creator>` + mediaXml(primary, extra),
       };
     })
   );

@@ -1,0 +1,210 @@
+---
+/**
+ * Projects.
+ *
+ * Generated from the org's real repositories, so it stays current with no
+ * hand-maintenance. A markdown file in src/content/projects can override
+ * or enrich any repo (better summary, cover image, status, linked BOM),
+ * and can also describe work that has no repo yet.
+ */
+import { getCollection } from 'astro:content';
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/ui/Section.astro';
+import SectionHead from '../components/ui/SectionHead.astro';
+import MonoLabel from '../components/ui/MonoLabel.astro';
+import DataGrid from '../components/ui/DataGrid.astro';
+import { getPublicRepos, relativeTime } from '../lib/github';
+import { SITE } from '../data/site';
+
+const [repos, overrides] = await Promise.all([getPublicRepos(), getCollection('projects')]);
+
+const overrideByRepo = new Map(
+  overrides.filter((p) => p.data.repo).map((p) => [p.data.repo!.toLowerCase(), p])
+);
+
+// Repos, enriched where an override exists.
+const fromRepos = repos.map((repo) => {
+  const override = overrideByRepo.get(repo.fullName.toLowerCase());
+  return {
+    key: repo.fullName,
+    title: override?.data.title ?? repo.name,
+    summary: override?.data.summary ?? repo.description,
+    url: repo.url,
+    language: repo.language,
+    stars: repo.stars,
+    pushedAt: repo.pushedAt,
+    topics: override?.data.domains.length ? override.data.domains : repo.topics,
+    status: override?.data.status,
+    revision: override?.data.revision,
+  };
+});
+
+// Curated projects with no repo of their own.
+const repoless = overrides
+  .filter((p) => !p.data.repo && !p.data.draft)
+  .map((p) => ({
+    key: p.id,
+    title: p.data.title,
+    summary: p.data.summary,
+    url: `/projects/${p.id}`,
+    language: null,
+    stars: null,
+    pushedAt: null,
+    topics: p.data.domains,
+    status: p.data.status,
+    revision: p.data.revision,
+  }));
+
+const projects = [...repoless, ...fromRepos];
+---
+
+<BaseLayout
+  title="Projects"
+  description="Open-source hardware and software from ESRA — actuators, legs, simulation, and tooling."
+  sourcePath="site/projects.astro"
+>
+  <Section pad="hero">
+    <MonoLabel as="div" size="sm" track="label">Latest open source</MonoLabel>
+    <h1>Projects</h1>
+    <p class="lede">
+      Everything below is public. Repository figures come straight from GitHub at build time —
+      nothing here is maintained by hand.
+    </p>
+    <MonoLabel as="div" size="micro" track="wide" class="counts">
+      N={projects.length} · <a href={SITE.orgUrl} rel="noopener">all repos &#8599;</a>
+    </MonoLabel>
+  </Section>
+
+  <Section pad="normal" last>
+    <SectionHead title="Repositories" aside="live from the GitHub API" />
+
+    {
+      projects.length === 0 ? (
+        <p class="empty">
+          Repository data is unavailable right now. It will reappear on the next build.
+        </p>
+      ) : (
+        <DataGrid min="280px">
+          {projects.map((p) => (
+            <article class="proj">
+              <div class="proj-top">
+                <span class="dot" aria-hidden="true" />
+                <a class="proj-name" href={p.url} rel="noopener">
+                  {p.title}
+                </a>
+              </div>
+
+              <p class="proj-desc">{p.summary ?? 'No description yet.'}</p>
+
+              {p.topics.length > 0 && (
+                <div class="topics">
+                  {p.topics.slice(0, 4).map((t) => (
+                    <span class="topic">{t}</span>
+                  ))}
+                </div>
+              )}
+
+              <MonoLabel as="div" size="micro" track="wide" class="proj-meta">
+                <span>
+                  {[p.language, p.stars !== null ? `★ ${p.stars}` : null, p.revision]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
+                <span>{relativeTime(p.pushedAt)}</span>
+              </MonoLabel>
+            </article>
+          ))}
+        </DataGrid>
+      )
+    }
+  </Section>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin: var(--u) 0 0;
+    font-family: var(--font-display);
+    font-size: var(--t-display);
+    font-weight: var(--w-bold);
+    line-height: 1.05;
+    letter-spacing: var(--track-snug);
+    text-transform: uppercase;
+  }
+
+  .lede {
+    margin: var(--u) 0 0;
+    max-width: 480px;
+    font-size: var(--t-md);
+    line-height: var(--lh-grid);
+    color: var(--ink-body);
+  }
+
+  :global(.counts) {
+    display: block;
+    margin-top: var(--u);
+  }
+
+  .proj {
+    padding: var(--u);
+  }
+
+  .proj-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--ink-strong);
+    opacity: 0.7;
+    flex: none;
+  }
+
+  .proj-name {
+    font-family: var(--font-mono);
+    font-size: var(--t-base);
+    font-weight: var(--w-semibold);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .proj-desc {
+    margin: var(--u-half) 0 var(--u-half);
+    font-size: var(--t-base);
+    line-height: var(--lh-grid);
+    color: var(--ink-body);
+    min-height: 3em;
+  }
+
+  .topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: var(--u-half);
+  }
+
+  .topic {
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+    border: 1px solid var(--rule);
+    padding: 1px 6px;
+    color: var(--ink-muted);
+  }
+
+  .proj :global(.proj-meta) {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--u-half);
+    border-top: var(--rule-width) solid var(--rule-soft);
+    padding-top: var(--u-half);
+  }
+
+  .empty {
+    font-size: var(--t-base);
+    color: var(--ink-muted);
+  }
+</style>

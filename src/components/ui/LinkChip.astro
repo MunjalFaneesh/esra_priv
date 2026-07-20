@@ -23,15 +23,7 @@ interface Props {
   class?: string;
 }
 
-const {
-  href,
-  platform,
-  tag,
-  label,
-  solid = false,
-  size = 'base',
-  class: className,
-} = Astro.props;
+const { href, platform, tag, label, solid = false, size = 'base', class: className } = Astro.props;
 
 const meta = platform ? PLATFORM_META[platform] : undefined;
 const shortTag = tag ?? meta?.short;
@@ -52,7 +44,13 @@ const accessibleName = meta && !label ? `${meta.label}: ${text}` : undefined;
   {meta && <Icon name={meta.icon} class="icon" aria-hidden="true" />}
   {shortTag && <span class="tag">{shortTag}</span>}
   <span class="text">{text}</span>
-  {external && <span class="arrow" aria-hidden="true">&#8599;</span>}
+  {
+    external && (
+      <span class="arrow" aria-hidden="true">
+        &#8599;
+      </span>
+    )
+  }
 </a>
 
 <style>

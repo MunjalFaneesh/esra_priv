@@ -107,8 +107,7 @@
     'IBM Plex Mono', ui-monospace, 'SF Mono', 'Berkeley Mono', Menlo, Consolas, monospace;
   --font-display: 'IBM Plex Mono', ui-monospace, 'Houston Mono', 'SF Mono', Menlo, monospace;
   --font-sans:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto,
-    sans-serif;
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
 
   /* Type scale — every size in the mockups, named by role */

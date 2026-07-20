@@ -1,0 +1,10 @@
+dist/
+.astro/
+.vercel/
+.cache/
+pnpm-lock.yaml
+
+# Prettier reflows long unquoted YAML scalars onto continuation lines,
+# which silently changes their meaning in the CMS config (a value with a
+# comma becomes several keys). Hand-formatted; leave it alone.
+public/admin/config.yml

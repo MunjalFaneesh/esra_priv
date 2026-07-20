@@ -1,0 +1,56 @@
+name: Refresh
+
+# Keeps the static site current without anyone running a build.
+#
+# The site is prerendered, so external data (GitHub repo stats, YouTube
+# videos) is baked in at build time. This redeploys on a schedule and on
+# demand so that data never goes stale by more than the cron interval.
+#
+# Publishing a post does NOT depend on this — committing markdown to main
+# triggers Vercel's own git deploy immediately.
+
+on:
+  schedule:
+    # Every 6 hours. Lower it freely; a rebuild is cheap and the Vercel
+    # hobby/pro build minutes for a static site of this size are trivial.
+    - cron: '0 */6 * * *'
+
+  # Fired by an org-level webhook when any esrabot repo is pushed, so
+  # project data updates as soon as work lands anywhere in the org.
+  repository_dispatch:
+    types: [refresh-site, org-push]
+
+  # Manual button in the Actions tab.
+  workflow_dispatch:
+
+jobs:
+  redeploy:
+    name: Trigger Vercel deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check hook is configured
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::error::VERCEL_DEPLOY_HOOK is not set."
+            echo "Create a Deploy Hook in the Vercel project (Settings -> Git ->"
+            echo "Deploy Hooks), then add the URL as a repository secret named"
+            echo "VERCEL_DEPLOY_HOOK."
+            exit 1
+          fi
+
+      - name: Request deploy
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          status=$(curl -sS -X POST "$HOOK" -o response.json -w '%{http_code}')
+          echo "Vercel responded $status"
+          cat response.json
+          # Any 2xx means the deploy was queued.
+          case "$status" in
+            2*) exit 0 ;;
+            *) echo "::error::Deploy hook failed with HTTP $status"; exit 1 ;;
+          esac

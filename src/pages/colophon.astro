@@ -1,0 +1,120 @@
+---
+/**
+ * Colophon — how the site is built.
+ *
+ * In keeping with building in public: the site documents its own
+ * construction the same way the hardware repos document theirs.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/ui/Section.astro';
+import SectionHead from '../components/ui/SectionHead.astro';
+import MonoLabel from '../components/ui/MonoLabel.astro';
+import Prose from '../components/ui/Prose.astro';
+import { SITE, buildInfo } from '../data/site';
+
+const build = buildInfo();
+---
+
+<BaseLayout
+  title="Colophon"
+  description="How this site is built, and what it is built from."
+  sourcePath="site/colophon.astro"
+>
+  <Section pad="hero">
+    <MonoLabel as="div" size="sm" track="label">About this document</MonoLabel>
+    <h1>Colophon</h1>
+  </Section>
+
+  <Section pad="normal" last>
+    <Prose>
+      <h2>Construction</h2>
+      <p>
+        Built with <a href="https://astro.build" rel="noopener">Astro</a> and prerendered to static HTML,
+        deployed on Vercel. Source is at
+        <a href={SITE.repoUrl} rel="noopener">{SITE.repo}</a>.
+      </p>
+      <p>
+        External data — repository statistics, video listings — is fetched at build time rather than
+        in the browser, so pages ship as plain HTML with no client-side data fetching. A scheduled
+        rebuild keeps that data current without anyone running a build. Where a source is
+        unavailable, the affected section renders without it; no figure on this site is a
+        placeholder.
+      </p>
+
+      <h2>Typography</h2>
+      <p>
+        Set in <a href="https://www.ibm.com/plex/" rel="noopener">IBM Plex Mono</a>, an open licence
+        typeface, with the system sans-serif for running text. The design was drawn against Berkeley
+        Mono and Houston Mono; those are commercial licences, so the site ships an open substitute
+        from the same lineage of documentation faces.
+      </p>
+
+      <h2>Colour</h2>
+      <p>
+        The field derives from FED-STD-595C 36495, by way of the ESRA brand grey. Text contrast is
+        enforced in CI: every text-and-surface pair is composited and measured against WCAG&nbsp;AA,
+        and the build fails below it.
+      </p>
+
+      <h2>Influences</h2>
+      <p>
+        The technical-drawing idiom, monospace labelling, and baseline grid owe to U.S. Graphics
+        Company, NASA documentation, Dieter Rams, and the terminal interfaces of Bell Labs-era
+        computing.
+      </p>
+
+      <h2>This build</h2>
+    </Prose>
+
+    <div class="build-facts">
+      <MonoLabel as="div" size="micro" track="wide" upper={false}>
+        <span>branch</span><span>{build.ref}</span>
+      </MonoLabel>
+      <MonoLabel as="div" size="micro" track="wide" upper={false}>
+        <span>commit</span>
+        <span
+          >{
+            build.sha ? (
+              <a href={build.commitUrl} rel="noopener">
+                {build.sha}
+              </a>
+            ) : (
+              'local'
+            )
+          }</span
+        >
+      </MonoLabel>
+      <MonoLabel as="div" size="micro" track="wide" upper={false}>
+        <span>built</span><span>{build.date}</span>
+      </MonoLabel>
+      <MonoLabel as="div" size="micro" track="wide" upper={false}>
+        <span>licence</span><span>{SITE.license}</span>
+      </MonoLabel>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin: var(--u) 0 0;
+    font-family: var(--font-display);
+    font-size: var(--t-display);
+    font-weight: var(--w-bold);
+    line-height: 1.05;
+    letter-spacing: var(--track-snug);
+    text-transform: uppercase;
+  }
+
+  .build-facts {
+    margin-top: var(--u);
+    max-width: var(--measure);
+    border-top: var(--rule-width) solid var(--rule);
+  }
+
+  .build-facts :global(div) {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--u-quarter) 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+</style>
