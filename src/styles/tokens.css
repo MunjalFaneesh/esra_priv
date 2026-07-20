@@ -1,0 +1,211 @@
+/*
+ * ESRA design tokens
+ * ------------------
+ * Every value the site uses lives here. Components reference tokens only —
+ * there should be no raw hex codes or pixel spacing anywhere downstream.
+ *
+ * The system is built on a 24px baseline grid. All vertical rhythm, component
+ * heights, and spacing are multiples of --u.
+ */
+
+:root {
+  /* ---------------------------------------------------------------
+   * Baseline grid
+   * The single unit everything derives from. Changing this rescales
+   * the entire layout coherently.
+   * ------------------------------------------------------------- */
+  --u: 24px;
+  --u-half: 12px;
+  --u-quarter: 6px;
+  --u-2: 48px;
+  --u-3: 72px;
+  --u-4: 96px;
+
+  /* ---------------------------------------------------------------
+   * Surfaces
+   * Descended from FED-STD-595C 36495 (aircraft grey), the same family
+   * as the ESRA "voodoo gray" brand background, rgb(190,193,190).
+   *
+   * Both surfaces were lifted from the mockup values (#B9BCB9 field,
+   * #C8CBC9 sheet) to buy contrast headroom — see the note below. The
+   * field stays a step darker than the sheet so the document still
+   * reads as a sheet resting on a surface.
+   *
+   * These exact values are load-bearing: scripts/check-contrast.mjs
+   * fails the build if a change drops any text pair below AA.
+   * ------------------------------------------------------------- */
+  --paper: #cbcecc; /* outer field, behind the sheet */
+  --sheet: #d4d7d5; /* the document surface */
+  --sheet-sunk: #a8aea9; /* image wells, empty states */
+  --ink: #242424; /* foreground */
+  --ink-inverse: #d4d7d5; /* text on inked backgrounds */
+
+  /* ---------------------------------------------------------------
+   * Text on --sheet, with measured contrast ratios.
+   *
+   * WCAG AA needs 4.5:1 for normal text, 3:1 for large text
+   * (>=24px, or >=18.7px bold).
+   *
+   * The source mockups used alpha .45-.60 for 10-11px mono labels.
+   * On the original #C8CBC9 sheet that measured 2.42:1 — below even
+   * the large-text floor.
+   *
+   * Note that brightening the sheet alone cannot fix this: the muted
+   * tones are semi-transparent ink composited ON the sheet, so lifting
+   * the background lifts the text with it. At the limit, .45 alpha on
+   * a PURE WHITE background still only reaches 4.05:1.
+   *
+   * So the fix is a combination — the sheet was lifted #C8CBC9 ->
+   * #D4D7D5, which lets the muted floor sit at .70 rather than the .72
+   * the darker sheet would have demanded. Ratios below are computed
+   * against #D4D7D5 using the sRGB relative-luminance formula.
+   *
+   * --ink-faint is deliberately below AA and is valid ONLY for
+   * non-informational rules, hairlines, and decorative marks.
+   * ------------------------------------------------------------- */
+  --ink-strong: rgba(36, 36, 36, 1); /* 10.70:1 — headings, primary body */
+  --ink-body: rgba(36, 36, 36, 0.86); /*  7.54:1 — body copy */
+  --ink-muted: rgba(36, 36, 36, 0.7); /*  4.85:1 — AA floor; small mono labels */
+  --ink-soft: rgba(36, 36, 36, 0.55); /*  3.26:1 — large text only (>=24px) */
+  --ink-faint: rgba(36, 36, 36, 0.36); /*  1.98:1 — NON-TEXT decoration only */
+
+  /* ---------------------------------------------------------------
+   * Rules and borders
+   * Non-text, so not bound by the contrast floor above.
+   * ------------------------------------------------------------- */
+  --rule-strong: rgba(36, 36, 36, 0.5); /* sheet edge */
+  --rule: rgba(36, 36, 36, 0.18); /* section dividers */
+  --rule-soft: rgba(36, 36, 36, 0.12); /* internal cell dividers */
+  --rule-grid: rgba(36, 36, 36, 0.085); /* baseline grid overlay */
+  --rule-width: 2px;
+
+  /* ---------------------------------------------------------------
+   * Accent
+   * Alternates are documented so the whole site can be re-keyed by
+   * overriding --accent alone.
+   *   #0A84FF  signal blue (default)
+   *   #0066CC  deeper blue
+   *   #3D8A5F  instrument green
+   *   #8A6D3B  ochre
+   * ------------------------------------------------------------- */
+  --accent: #0a84ff; /* 2.4:1 — marks, rules, fills. NOT for text. */
+  --accent-ink: #0a55a5; /* 5.07:1 on --sheet — the accent for TEXT */
+  --accent-wash: rgba(10, 132, 255, 0.22); /* ::selection */
+
+  /* ---------------------------------------------------------------
+   * Typography
+   *
+   * The mockups specify Berkeley Mono and Houston Mono, both paid
+   * licences. The site ships self-hosted IBM Plex Mono (OFL) — a
+   * technical grotesque from the same lineage of documentation faces.
+   *
+   * TO SWAP IN A LICENSED FACE: drop the woff2 into src/assets/fonts/,
+   * add its @font-face in fonts.css, and change ONLY the two custom
+   * properties below. Nothing else in the codebase names a typeface.
+   * ------------------------------------------------------------- */
+  --font-mono:
+    'IBM Plex Mono', ui-monospace, 'SF Mono', 'Berkeley Mono', Menlo, Consolas, monospace;
+  --font-display: 'IBM Plex Mono', ui-monospace, 'Houston Mono', 'SF Mono', Menlo, monospace;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto,
+    sans-serif;
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+
+  /* Type scale — every size in the mockups, named by role */
+  --t-micro: 10px; /* colophon, cell labels */
+  --t-mono-sm: 11px; /* mono metadata */
+  --t-mono: 12px; /* mono body, section heads */
+  --t-sm: 13px; /* nav, dense UI */
+  --t-base: 14px; /* card body */
+  --t-md: 15px; /* lede, list body */
+  --t-lg: 16px; /* prose body */
+  --t-xl: 17px; /* pull quotes */
+  --t-h3: 22px;
+  --t-h2: 28px;
+  --t-h1: clamp(30px, 4vw, 44px);
+  --t-display: clamp(34px, 4.6vw, 52px);
+  --t-hero: clamp(38px, 5.4vw, 62px);
+
+  /* Tracking — uppercase mono needs generous letter-spacing to read */
+  --track-tight: -0.02em;
+  --track-snug: -0.01em;
+  --track-none: 0;
+  --track-wide: 0.04em;
+  --track-wider: 0.08em;
+  --track-widest: 0.12em;
+  --track-mono-label: 0.16em;
+
+  /* Line heights — all multiples of the grid where they carry text */
+  --lh-tight: 1;
+  --lh-grid: 24px; /* the workhorse: one baseline unit */
+  --lh-snug: 18px;
+  --lh-loose: 1.6;
+
+  /* Weights */
+  --w-regular: 400;
+  --w-medium: 500;
+  --w-semibold: 600;
+  --w-bold: 700;
+
+  /* ---------------------------------------------------------------
+   * Layout
+   * ------------------------------------------------------------- */
+  --sheet-max: 1056px; /* 44 grid units */
+  --measure: 620px; /* optimal reading width for prose */
+  --measure-wide: 960px;
+  --margin-col: 272px; /* Tufte-style side note column */
+  --margin-gutter: 320px;
+
+  /* ---------------------------------------------------------------
+   * Depth and motion
+   * ------------------------------------------------------------- */
+  --shadow-sheet: 0 24px 72px rgba(36, 36, 36, 0.14);
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 0.12s;
+  --dur: 0.15s;
+  --dur-slow: 0.3s;
+
+  /* Halftone / dither treatment for imagery */
+  --dither-size: 3px;
+  --dither-dot: rgba(36, 36, 36, 0.55);
+  --scanline: rgba(36, 36, 36, 0.16);
+
+  --z-grid: 0;
+  --z-content: 1;
+  --z-sticky: 10;
+  --z-overlay: 100;
+}
+
+/*
+ * Respect the OS reduced-motion setting globally. Individual components
+ * do not need to re-implement this.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0.01ms;
+    --dur: 0.01ms;
+    --dur-slow: 0.01ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Forced-colours (Windows High Contrast): drop the decorative layers
+ * entirely and let the OS palette through.
+ */
+@media (forced-colors: active) {
+  :root {
+    --rule-strong: CanvasText;
+    --rule: CanvasText;
+    --rule-soft: CanvasText;
+    --rule-grid: transparent;
+  }
+}

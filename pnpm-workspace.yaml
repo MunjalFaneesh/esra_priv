@@ -1,0 +1,5 @@
+# pnpm 11 reads build-script approvals from here (no longer from package.json).
+# Both ship prebuilt native binaries and need their install scripts to run.
+allowBuilds:
+  esbuild: true
+  sharp: true
