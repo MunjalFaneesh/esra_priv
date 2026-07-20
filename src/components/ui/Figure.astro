@@ -1,0 +1,192 @@
+---
+/**
+ * A plated figure: bordered well, optional corner annotations, and the
+ * halftone/scanline treatment that gives imagery its printed-document
+ * character.
+ *
+ * Images go through astro:assets, so the multi-megabyte source photos
+ * migrated from the old site ship as sized, modern-format derivatives.
+ * Remote or `public/` sources fall back to a plain <img>.
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  src?: ImageMetadata | string;
+  alt?: string;
+  /** Corner annotations, in the FIG.1 / part-number idiom. */
+  plate?: string;
+  ref?: string;
+  /** Caption below the plate. Also accepts the `caption` slot. */
+  caption?: string;
+  ratio?: string;
+  /** Halftone dot + scanline overlay. Off for diagrams and logos. */
+  dither?: boolean;
+  /** Desaturate to match the printed look. */
+  mono?: boolean;
+  fit?: 'cover' | 'contain';
+  /** Rendered width hint for the optimiser. */
+  width?: number;
+  loading?: 'lazy' | 'eager';
+  class?: string;
+}
+
+const {
+  src,
+  alt = '',
+  plate,
+  ref,
+  caption,
+  ratio = '4/5',
+  dither = true,
+  mono = true,
+  fit = 'cover',
+  width = 900,
+  loading = 'lazy',
+  class: className,
+} = Astro.props;
+
+const isLocal = typeof src === 'object' && src !== null;
+const hasCaption = caption || Astro.slots.has('caption');
+---
+
+<figure class:list={['figure', className]}>
+  <div class="plate">
+    {plate && <span class="corner tl">{plate}</span>}
+    {ref && <span class="corner tr">{ref}</span>}
+
+    <div class="well" style={`aspect-ratio: ${ratio};`}>
+      {
+        isLocal ? (
+          <Image
+            src={src as ImageMetadata}
+            alt={alt}
+            width={width}
+            loading={loading}
+            class:list={['media', { mono }]}
+            style={`object-fit: ${fit};`}
+          />
+        ) : src ? (
+          <img
+            src={src as string}
+            alt={alt}
+            loading={loading}
+            decoding="async"
+            class:list={['media', { mono }]}
+            style={`object-fit: ${fit};`}
+          />
+        ) : (
+          <slot />
+        )
+      }
+
+      {
+        dither && (
+          <>
+            <div class="dither" aria-hidden="true" />
+            <div class="scanlines" aria-hidden="true" />
+          </>
+        )
+      }
+    </div>
+  </div>
+
+  {
+    hasCaption && (
+      <figcaption class="caption">
+        {caption ? <span set:html={caption} /> : <slot name="caption" />}
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .figure {
+    margin: 0;
+  }
+
+  .plate {
+    position: relative;
+    border: var(--rule-width) solid var(--rule-strong);
+    background: var(--paper);
+    padding: 8px;
+  }
+
+  .corner {
+    position: absolute;
+    top: 6px;
+    z-index: 3;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: var(--track-widest);
+    color: var(--ink-muted);
+  }
+
+  .tl {
+    left: 12px;
+  }
+  .tr {
+    right: 12px;
+  }
+
+  .well {
+    position: relative;
+    overflow: hidden;
+    background: var(--sheet-sunk);
+  }
+
+  .media {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .media.mono {
+    filter: grayscale(1) contrast(1.12) brightness(1.06);
+  }
+
+  /* Halftone dot screen */
+  .dither {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(var(--dither-dot) 0.5px, transparent 0.7px);
+    background-size: var(--dither-size) var(--dither-size);
+    mix-blend-mode: multiply;
+    opacity: 0.42;
+  }
+
+  /* CRT scanlines */
+  .scanlines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(var(--scanline) 0 1px, transparent 1px 3px);
+    mix-blend-mode: multiply;
+    opacity: 0.5;
+  }
+
+  .caption {
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+    line-height: 15px;
+    color: var(--ink-muted);
+  }
+
+  .caption :global(strong) {
+    color: var(--ink-strong);
+    font-weight: var(--w-semibold);
+  }
+
+  /* The treatment is decorative; drop it when the OS asks for plain output. */
+  @media (forced-colors: active) {
+    .dither,
+    .scanlines {
+      display: none;
+    }
+    .media.mono {
+      filter: none;
+    }
+  }
+</style>

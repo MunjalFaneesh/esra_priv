@@ -1,0 +1,60 @@
+---
+/**
+ * An aside in the document idiom — a ruled block with a mono label.
+ *
+ * Usage in markdown:
+ *   <Callout kind="warn" title="Mind the enamel">
+ *   Over-tensioning nicks the wire and shorts a turn.
+ *   </Callout>
+ */
+interface Props {
+  kind?: 'note' | 'warn' | 'spec';
+  title?: string;
+}
+
+const { kind = 'note', title } = Astro.props;
+const defaultTitle = { note: 'Note', warn: 'Caution', spec: 'Spec' }[kind];
+---
+
+<aside class:list={['callout', kind]}>
+  <p class="label">{title ?? defaultTitle}</p>
+  <div class="body"><slot /></div>
+</aside>
+
+<style>
+  .callout {
+    border: var(--rule-width) solid var(--rule);
+    border-left-width: 6px;
+    padding: var(--u-half) var(--u);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .callout.warn {
+    border-left-color: var(--ink-strong);
+  }
+
+  .callout.spec {
+    border-left-color: var(--accent);
+  }
+
+  .label {
+    margin: 0 0 var(--u-quarter);
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-mono-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .body :global(> :first-child) {
+    margin-top: 0;
+  }
+  .body :global(> :last-child) {
+    margin-bottom: 0;
+  }
+  .body {
+    font-size: var(--t-base);
+    line-height: var(--lh-grid);
+    color: var(--ink-body);
+  }
+</style>

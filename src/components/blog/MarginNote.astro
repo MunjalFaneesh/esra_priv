@@ -1,0 +1,50 @@
+---
+/**
+ * A Tufte-style side note. Floats into the margin column on wide screens
+ * and folds inline on narrow ones, so it never gets orphaned.
+ *
+ * Usage in markdown:
+ *   <MarginNote n="1">Gear ratio near N = 6 keeps reflected inertia low.</MarginNote>
+ */
+interface Props {
+  /** Marker number, matched to a <sup> in the body text. */
+  n?: number | string;
+}
+
+const { n } = Astro.props;
+---
+
+<aside class="margin-note">
+  {n && <sup class="marker">{n}</sup>}
+  <slot />
+</aside>
+
+<style>
+  .margin-note {
+    float: right;
+    clear: right;
+    width: var(--margin-col);
+    margin-right: calc(-1 * var(--margin-gutter));
+    margin-bottom: var(--u);
+    font-size: var(--t-mono);
+    line-height: var(--lh-snug);
+    color: var(--ink-muted);
+  }
+
+  .marker {
+    color: var(--ink-soft);
+    margin-right: 4px;
+  }
+
+  /* Below the margin-column breakpoint, fold inline as a ruled aside
+     rather than floating into space that no longer exists. */
+  @media (max-width: 1000px) {
+    .margin-note {
+      float: none;
+      width: auto;
+      margin: var(--u) 0;
+      padding-left: var(--u-half);
+      border-left: var(--rule-width) solid var(--rule);
+    }
+  }
+</style>

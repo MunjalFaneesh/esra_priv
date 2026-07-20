@@ -1,0 +1,105 @@
+---
+/**
+ * Comments, backed by GitHub Discussions via giscus.
+ *
+ * Fits the git-centric philosophy: threads live with the org, contributors
+ * already have accounts, and there is no separate moderation surface.
+ *
+ * The giscus script is only injected once the repo IDs are configured, so
+ * an unconfigured site renders an honest "not enabled yet" note instead of
+ * a broken widget. Fill these in from https://giscus.app after enabling
+ * Discussions on the repo.
+ */
+import MonoLabel from '../ui/MonoLabel.astro';
+import { SITE } from '../../data/site';
+
+interface Props {
+  slug: string;
+  title: string;
+}
+
+const { slug } = Astro.props;
+
+const REPO_ID = import.meta.env.PUBLIC_GISCUS_REPO_ID ?? '';
+const CATEGORY_ID = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID ?? '';
+const configured = Boolean(REPO_ID && CATEGORY_ID);
+---
+
+<section class="comments" aria-labelledby="comments-heading">
+  <div class="head">
+    <MonoLabel as="h2" size="base" track="label" class="heading">
+      <span id="comments-heading">&#8225; Comments</span>
+    </MonoLabel>
+    <MonoLabel size="micro" track="wide">
+      {configured ? 'powered by giscus' : 'not enabled yet'}
+    </MonoLabel>
+  </div>
+
+  {
+    configured ? (
+      <script
+        src="https://giscus.app/client.js"
+        data-repo={SITE.repo}
+        data-repo-id={REPO_ID}
+        data-category={SITE.discussionsCategory}
+        data-category-id={CATEGORY_ID}
+        data-mapping="specific"
+        data-term={slug}
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="light"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async
+      />
+    ) : (
+      <div class="placeholder">
+        <p>
+          Comments run on GitHub Discussions. Once Discussions is enabled on
+          <a href={SITE.repoUrl} rel="noopener">{SITE.repo}</a> and the giscus IDs are set,
+          threads appear here automatically.
+        </p>
+        <MonoLabel size="micro" track="wide">
+          set PUBLIC_GISCUS_REPO_ID and PUBLIC_GISCUS_CATEGORY_ID
+        </MonoLabel>
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .comments {
+    max-width: var(--measure);
+    margin: var(--u-2) auto 0;
+    padding-top: var(--u-2);
+    border-top: var(--rule-width) solid var(--rule);
+  }
+
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--u);
+  }
+
+  .comments :global(.heading) {
+    margin: 0;
+    font-weight: var(--w-medium);
+  }
+
+  .placeholder {
+    border: var(--rule-width) solid var(--rule);
+    background: rgba(255, 255, 255, 0.05);
+    padding: var(--u);
+    text-align: center;
+  }
+
+  .placeholder p {
+    margin: 0 0 var(--u-half);
+    font-size: var(--t-base);
+    line-height: var(--lh-grid);
+    color: var(--ink-body);
+  }
+</style>

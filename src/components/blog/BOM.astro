@@ -1,0 +1,255 @@
+---
+/**
+ * Bill of materials.
+ *
+ * Open hardware is only reproducible if the parts list ships with the
+ * design, so a BOM is a first-class content type rather than a hand-built
+ * table. Data lives in src/content/boms/*.yaml.
+ *
+ * Usage in markdown:
+ *   <BOM id="leg-test-stand" />
+ *
+ * On cost reporting: the component sums ONLY lines where unitPrice and
+ * unitQty are both present, and says so in the total's label. It never
+ * infers a missing quantity as 1 or presents a partial sum as a project
+ * total — an understated BOM total is actively misleading to someone
+ * budgeting a rebuild.
+ */
+import { getEntry } from 'astro:content';
+import MonoLabel from '../ui/MonoLabel.astro';
+
+interface Props {
+  id: string;
+  /** Hide the vendor column on narrow embeds. */
+  compact?: boolean;
+}
+
+const { id, compact = false } = Astro.props;
+
+const bom = await getEntry('boms', id);
+if (!bom) {
+  throw new Error(
+    `<BOM id="${id}" /> — no such BOM. Expected src/content/boms/${id}.yaml. ` +
+      `Check the filename matches the id.`
+  );
+}
+
+const { title, subject, currency, notes, lines, updated } = bom.data;
+
+const priced = lines.filter((l) => l.unitPrice !== undefined && l.unitQty !== undefined);
+const subtotal = priced.reduce((sum, l) => sum + l.unitPrice! * l.unitQty!, 0);
+const unpriced = lines.length - priced.length;
+const outstanding = lines.filter((l) => !l.purchased).length;
+
+const money = (n: number) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);
+---
+
+<figure class="bom">
+  <figcaption class="head">
+    <div>
+      <MonoLabel as="div" size="micro" track="label">Bill of materials</MonoLabel>
+      <strong>{title}</strong>
+      {subject && <span class="subject">{subject}</span>}
+    </div>
+    <MonoLabel as="div" size="micro" track="wide" class="head-meta">
+      {lines.length} lines · {outstanding} outstanding
+      {updated && <><br />rev {updated.toISOString().slice(0, 10)}</>}
+    </MonoLabel>
+  </figcaption>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col" class="c-status"><span class="sr-only">Purchased</span></th>
+          {!compact && <th scope="col">Vendor</th>}
+          <th scope="col">Item</th>
+          <th scope="col" class="c-qty">Qty</th>
+          <th scope="col" class="c-num">Unit</th>
+          <th scope="col" class="c-num">×</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          lines.map((line) => (
+            <tr class:list={{ pending: !line.purchased }}>
+              <td class="c-status">
+                <span class="dot" aria-hidden="true">{line.purchased ? '●' : '○'}</span>
+                <span class="sr-only">{line.purchased ? 'Purchased' : 'Not purchased'}</span>
+              </td>
+              {!compact && <td class="vendor">{line.vendor ?? '—'}</td>}
+              <td class="item">
+                <span class="item-name">{line.item}</span>
+                {line.notes && <span class="notes">{line.notes}</span>}
+                {line.links.length > 0 && (
+                  <span class="links">
+                    {line.links.map((l) => (
+                      <a href={l.url} rel="noopener" target="_blank">{l.label} &#8599;</a>
+                    ))}
+                  </span>
+                )}
+              </td>
+              <td class="c-qty">{line.qty ?? ''}</td>
+              <td class="c-num">{line.unitPrice !== undefined ? money(line.unitPrice) : ''}</td>
+              <td class="c-num">{line.unitQty ?? ''}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    <MonoLabel size="micro" track="wide" upper={false}>
+      {/* Deliberately not called a project total — see the note above. */}
+      Sum of {priced.length} priced {priced.length === 1 ? 'line' : 'lines'}:
+      <strong>{money(subtotal)}</strong>
+      {unpriced > 0 && <> · {unpriced} {unpriced === 1 ? 'line has' : 'lines have'} no price recorded</>}
+    </MonoLabel>
+    {notes && <p class="bom-notes">{notes}</p>}
+  </div>
+</figure>
+
+<style>
+  .bom {
+    margin: 0;
+    border: var(--rule-width) solid var(--rule);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--u);
+    padding: var(--u-half) var(--u);
+    border-bottom: var(--rule-width) solid var(--rule);
+  }
+
+  .head strong {
+    display: block;
+    font-size: var(--t-md);
+    font-weight: var(--w-semibold);
+    line-height: var(--lh-grid);
+  }
+
+  .subject {
+    display: block;
+    font-size: var(--t-sm);
+    color: var(--ink-muted);
+  }
+
+  .head :global(.head-meta) {
+    text-align: right;
+    white-space: nowrap;
+    flex: none;
+  }
+
+  /* The table scrolls inside its own box so the page never scrolls
+     sideways on a phone. */
+  .scroll {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--t-base);
+  }
+
+  th {
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+    font-weight: var(--w-regular);
+    letter-spacing: var(--track-widest);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    text-align: left;
+    padding: var(--u-quarter) var(--u-half);
+    border-bottom: var(--rule-width) solid var(--rule);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: var(--u-quarter) var(--u-half);
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: top;
+  }
+
+  tr.pending .item-name {
+    color: var(--ink-muted);
+  }
+
+  .c-status {
+    width: 1.5rem;
+    text-align: center;
+  }
+
+  .dot {
+    font-family: var(--font-mono);
+    color: var(--ink-muted);
+  }
+
+  .vendor {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  .item-name {
+    display: block;
+    line-height: var(--lh-grid);
+  }
+
+  .notes {
+    display: block;
+    font-size: var(--t-mono);
+    color: var(--ink-muted);
+    line-height: var(--lh-snug);
+  }
+
+  .links {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--u-half);
+    margin-top: 2px;
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+  }
+
+  .c-qty {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    white-space: nowrap;
+    color: var(--ink-muted);
+  }
+
+  .c-num {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    text-align: right;
+    white-space: nowrap;
+    /* Tabular figures so prices align down the column. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  .foot {
+    padding: var(--u-half) var(--u);
+    border-top: var(--rule-width) solid var(--rule);
+  }
+
+  .foot strong {
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-strong);
+  }
+
+  .bom-notes {
+    margin: var(--u-quarter) 0 0;
+    font-size: var(--t-mono);
+    line-height: var(--lh-snug);
+    color: var(--ink-muted);
+    max-width: 60ch;
+  }
+</style>

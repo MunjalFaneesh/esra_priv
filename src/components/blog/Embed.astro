@@ -1,0 +1,152 @@
+---
+/**
+ * Third-party embed (YouTube today; extendable).
+ *
+ * Renders as a click-to-load facade: a poster frame plus a play control
+ * that swaps in the iframe on demand. Nothing from the provider loads —
+ * no iframe, no cookies, no tracking — until the reader opts in, which
+ * keeps the page fast and avoids embedding trackers by default.
+ *
+ * Usage in markdown:
+ *   <Embed youtube="dQw4w9WgXcQ" caption="Bring-up walkthrough." />
+ */
+interface Props {
+  youtube?: string;
+  /** Full URL, used when the provider isn't YouTube. */
+  url?: string;
+  title?: string;
+  caption?: string;
+}
+
+const { youtube, url, title = 'Embedded video', caption } = Astro.props;
+
+// youtube-nocookie serves the same player without setting tracking cookies.
+const embedUrl = youtube
+  ? `https://www.youtube-nocookie.com/embed/${youtube}?autoplay=1`
+  : url;
+
+// Thumbnails come from a separate image host that sets no cookies.
+const poster = youtube ? `https://i.ytimg.com/vi/${youtube}/hqdefault.jpg` : undefined;
+---
+
+<figure class="embed">
+  <div class="frame" data-embed={embedUrl} data-title={title}>
+    {
+      poster ? (
+        <img src={poster} alt="" loading="lazy" decoding="async" class="poster" />
+      ) : (
+        <div class="poster placeholder" />
+      )
+    }
+    <button type="button" class="play">
+      <span class="tri" aria-hidden="true"></span>
+      <span class="sr-only">Load and play: {title}</span>
+    </button>
+    <span class="notice">Loads from YouTube on play</span>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  // Progressive enhancement: with no JS the facade simply stays a poster
+  // and the caption/link still communicate what the video is.
+  document.querySelectorAll<HTMLElement>('.embed .frame').forEach((frame) => {
+    frame.querySelector('.play')?.addEventListener('click', () => {
+      const src = frame.dataset.embed;
+      if (!src) return;
+
+      const iframe = document.createElement('iframe');
+      iframe.src = src;
+      iframe.title = frame.dataset.title ?? 'Embedded video';
+      iframe.allow =
+        'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.loading = 'lazy';
+
+      frame.replaceChildren(iframe);
+    });
+  });
+</script>
+
+<style>
+  .embed {
+    margin: 0;
+  }
+
+  .frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border: var(--rule-width) solid var(--rule-strong);
+    background: var(--sheet-sunk);
+  }
+
+  .frame :global(iframe) {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  .poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.1);
+  }
+
+  .play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .tri {
+    width: 56px;
+    height: 56px;
+    border: var(--rule-width) solid var(--ink-strong);
+    border-radius: 50%;
+    background: rgba(212, 215, 213, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--dur) var(--ease);
+  }
+
+  .tri::after {
+    content: '';
+    border-left: 16px solid var(--ink-strong);
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    margin-left: 4px;
+  }
+
+  .play:hover .tri {
+    background: var(--sheet);
+  }
+
+  .notice {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: var(--track-widest);
+    text-transform: uppercase;
+    color: var(--ink-inverse);
+    background: var(--ink);
+    padding: 3px 6px;
+  }
+
+  figcaption {
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+    color: var(--ink-muted);
+  }
+</style>

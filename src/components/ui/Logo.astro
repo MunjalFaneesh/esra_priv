@@ -1,0 +1,55 @@
+---
+/**
+ * ESRA wordmark.
+ *
+ * Path data is the generated output of esrabot/logo (release v17,
+ * `esra-transparent.svg`), which renders the mark from Nasalization Rg.
+ * These are outlines, so no font is needed or shipped at runtime.
+ *
+ * The viewBox crops the 512x512 canvas to the wordmark's ink extents.
+ * Fill is currentColor so the mark inherits its surroundings.
+ */
+interface Props {
+  /** Rendered height in px. Width follows the aspect ratio. */
+  height?: number;
+  /** Accessible label. Set to null when the mark is decorative. */
+  label?: string | null;
+  class?: string;
+}
+
+const { height = 24, label = 'ESRA', class: className } = Astro.props;
+const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' };
+---
+
+<svg
+  viewBox="44 196 424 122"
+  height={height}
+  class:list={['logo', className]}
+  fill="currentColor"
+  {...a11y}
+>
+  <rect x="146" y="292.72" width="9.44" height="18.88"></rect>
+  <path
+    transform="translate(48.48,311.6) scale(0.16,-0.16)"
+    d="M283 675C124 675 57 599 57 491C57 417 89 365 152 339C90 313 55 261 55 184C55 79 120 0 280 0H622V118H280C211 118 178 150 178 203C178 258 213 285 281 285H616V392H284C216 392 181 417 181 472C181 524 212 557 283 557H621V675Z"
+  ></path>
+  <path
+    transform="translate(143.36,311.6) scale(0.16,-0.16)"
+    d="M261 675C111 675 51 593 51 481C51 387 93 286 273 286H430C513 286 536 246 536 202C536 153 507 118 443 118H63V0H439C593 0 654 84 654 198C654 295 611 397 427 397H269C190 397 169 436 169 477C169 524 196 557 257 557H603V675Z"
+  ></path>
+  <path
+    transform="translate(239.84,311.6) scale(0.16,-0.16)"
+    d="M80 675V557H450C515 557 544 516 544 468C544 420 517 374 450 374H187C113 374 81 343 81 267V0H199V244C199 256 205 261 216 261H392L546 0H677L520 270C623 299 663 389 663 473C663 581 598 675 446 675Z"
+  ></path>
+  <path
+    transform="translate(338.08,311.6) scale(0.16,-0.16)"
+    d="M363 543C370 559 381 566 397 566C413 566 424 559 430 543L635 0H766L538 600C514 663 468 687 398 687C327 687 281 663 256 600L19 0H149Z"
+  ></path>
+</svg>
+
+<style>
+  .logo {
+    display: block;
+    width: auto;
+  }
+</style>

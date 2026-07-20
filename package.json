@@ -32,12 +32,14 @@
     "@iconify-json/simple-icons": "^1.2.90",
     "astro": "^7.1.1",
     "astro-icon": "^1.1.5",
+    "mdast-util-to-string": "^4.0.0",
     "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "prettier": "^3.9.5",
     "prettier-plugin-astro": "^0.14.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "yaml": "^2.9.0"
   }
 }

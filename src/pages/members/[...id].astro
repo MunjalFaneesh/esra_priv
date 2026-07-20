@@ -1,0 +1,178 @@
+---
+/**
+ * The members registry.
+ *
+ * One route handles both /members and /members/<id>: a rest parameter
+ * with an undefined value produces the index, so the page chrome is
+ * written once and every member gets a real, statically rendered URL.
+ */
+import { getCollection, getEntry } from 'astro:content';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/ui/Section.astro';
+import SectionHead from '../../components/ui/SectionHead.astro';
+import MonoLabel from '../../components/ui/MonoLabel.astro';
+import DataGrid from '../../components/ui/DataGrid.astro';
+import MemberRoster from '../../components/members/MemberRoster.astro';
+import { seededShuffle } from '../../lib/order';
+
+export async function getStaticPaths() {
+  const members = (await getCollection('members')).filter((m) => !m.data.inactive);
+
+  // Shuffled once per build rather than per page load — see lib/order.ts.
+  const ordered = seededShuffle(members);
+
+  return [
+    // /members — the index, with the first member in build order selected.
+    { params: { id: undefined }, props: { members: ordered, selectedId: ordered[0]!.id } },
+    // /members/<id> — one page per member.
+    ...ordered.map((m) => ({
+      params: { id: m.id },
+      props: { members: ordered, selectedId: m.id },
+    })),
+  ];
+}
+
+interface Props {
+  members: Awaited<ReturnType<typeof getCollection<'members'>>>;
+  selectedId: string;
+}
+
+const { members, selectedId } = Astro.props;
+const selected = members.find((m) => m.id === selectedId)!;
+
+const partners = await getCollection('partners');
+
+const isIndex = Astro.params.id === undefined;
+const title = isIndex ? 'Members' : selected.data.name;
+const description = isIndex
+  ? 'The people building ESRA in the open — across five clubs and four schools.'
+  : `${selected.data.name}${selected.data.affiliation ? ` — ${selected.data.affiliation}` : ''}. Part of ESRA.`;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  sourcePath="site/members.astro"
+  image={undefined}
+>
+  <Section pad="hero">
+    <div class="masthead">
+      <div>
+        <MonoLabel as="div" size="sm" track="label">Core collaborators · registry</MonoLabel>
+        <h1>Members</h1>
+        <p class="lede">
+          The people building ESRA in the open, across affiliated clubs and schools. Select a
+          name to read their record and find them elsewhere.
+        </p>
+      </div>
+      <MonoLabel as="div" size="micro" track="wide" class="counts">
+        N={members.length} · core<br />consortium registry<br />rev {
+          new Date().toISOString().slice(0, 7).replace('-', '.')
+        }
+      </MonoLabel>
+    </div>
+  </Section>
+
+  <MemberRoster members={members} selected={selected} />
+
+  <Section id="clubs" pad="normal" last>
+    <SectionHead title="Affiliated clubs" aside={`N=${partners.length}`} />
+    <DataGrid min="220px">
+      {
+        partners.map((p) => (
+          <a class="club" href={p.data.url} rel="noopener" target="_blank">
+            <div class="club-top">
+              <MonoLabel size="micro" track="wide">{p.data.abbr ?? p.data.school}</MonoLabel>
+              <span class="arrow" aria-hidden="true">&#8599;</span>
+            </div>
+            <div class="club-name">{p.data.name}</div>
+            <MonoLabel as="div" size="micro" track="wide" upper={false} class="club-meta">
+              {[p.data.school, p.data.location].filter(Boolean).join(' · ')}
+            </MonoLabel>
+          </a>
+        ))
+      }
+    </DataGrid>
+  </Section>
+</BaseLayout>
+
+<style>
+  .masthead {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--u);
+  }
+
+  h1 {
+    margin: var(--u) 0 0;
+    font-family: var(--font-display);
+    font-size: var(--t-display);
+    font-weight: var(--w-bold);
+    line-height: 1.05;
+    letter-spacing: var(--track-snug);
+    text-transform: uppercase;
+  }
+
+  .lede {
+    margin: var(--u) 0 0;
+    max-width: 456px;
+    font-size: var(--t-md);
+    line-height: var(--lh-grid);
+    color: var(--ink-body);
+  }
+
+  .masthead :global(.counts) {
+    text-align: right;
+    white-space: nowrap;
+    flex: none;
+  }
+
+  .club {
+    display: block;
+    padding: 20px;
+    text-decoration: none;
+    color: var(--ink-strong);
+    transition: background var(--dur-fast) var(--ease);
+  }
+
+  .club:hover {
+    background: rgba(36, 36, 36, 0.05);
+    color: var(--ink-strong);
+  }
+
+  .club-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .arrow {
+    color: var(--ink-muted);
+    font-size: var(--t-mono);
+  }
+
+  .club-name {
+    margin-top: var(--u-half);
+    font-size: var(--t-md);
+    font-weight: var(--w-semibold);
+    line-height: var(--lh-grid);
+  }
+
+  .club :global(.club-meta) {
+    margin-top: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .masthead {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--u-half);
+    }
+
+    .masthead :global(.counts) {
+      text-align: left;
+    }
+  }
+</style>

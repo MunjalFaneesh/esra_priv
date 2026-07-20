@@ -1,0 +1,119 @@
+---
+/**
+ * Sheet footer — wordmark, blurb, and link columns.
+ *
+ * The Channels column is generated from the org registry, so every social
+ * account either appears here automatically or does not exist. Orgs with
+ * partial coverage simply render fewer links.
+ */
+import Logo from '../ui/Logo.astro';
+import MonoLabel from '../ui/MonoLabel.astro';
+import { NAV, SITE } from '../../data/site';
+import { ORGS, PLATFORM_META } from '../../data/orgs';
+
+const siteLinks = NAV.filter((n) => !n.mono);
+---
+
+<footer class="footer">
+  <div class="cols">
+    <div class="about">
+      <Logo height={22} label={null} />
+      <p>{SITE.description}</p>
+      <MonoLabel size="micro" track="wide">
+        Est. {SITE.established} &middot; {SITE.license}
+      </MonoLabel>
+    </div>
+
+    <nav class="col" aria-label="Site">
+      <MonoLabel as="div" size="micro" class="col-head">Site</MonoLabel>
+      <ul>
+        {siteLinks.map(({ label, href }) => (
+          <li><a href={href}>{label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <nav class="col" aria-label="Source">
+      <MonoLabel as="div" size="micro" class="col-head">Source</MonoLabel>
+      <ul>
+        <li><a href={SITE.orgUrl} rel="noopener">GitHub &#8599;</a></li>
+        <li><a href={SITE.repoUrl} rel="noopener">This site &#8599;</a></li>
+        <li><a href="/rss.xml">RSS feed</a></li>
+        <li><a href="/colophon">Colophon</a></li>
+      </ul>
+    </nav>
+
+    {
+      ORGS.map((org) => (
+        <nav class="col" aria-label={`${org.name} channels`}>
+          <MonoLabel as="div" size="micro" class="col-head">{org.name}</MonoLabel>
+          <ul>
+            {org.links
+              .filter((l) => l.platform !== 'website' || org.id !== 'esra')
+              .map((link) => (
+                <li>
+                  <a href={link.url} rel="noopener">
+                    {PLATFORM_META[link.platform].label} &#8599;
+                  </a>
+                </li>
+              ))}
+          </ul>
+        </nav>
+      ))
+    }
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding: var(--u-2);
+  }
+
+  .cols {
+    display: grid;
+    grid-template-columns: 1.6fr repeat(4, 1fr);
+    gap: var(--u-2);
+  }
+
+  .about p {
+    margin: var(--u-half) 0 var(--u-half);
+    max-width: 288px;
+    font-size: var(--t-sm);
+    line-height: var(--lh-grid);
+    color: var(--ink-muted);
+  }
+
+  .col :global(.col-head) {
+    display: block;
+    margin-bottom: var(--u-half);
+  }
+
+  .col ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--u-quarter);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: var(--t-sm);
+  }
+
+  @media (max-width: 940px) {
+    .cols {
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: var(--u);
+    }
+    .about {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .footer {
+      padding: var(--u-2) var(--u-half);
+    }
+    .cols {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

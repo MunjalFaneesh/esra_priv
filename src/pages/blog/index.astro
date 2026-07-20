@@ -1,0 +1,177 @@
+---
+/**
+ * The build log index.
+ */
+import { getCollection, getEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/ui/Section.astro';
+import MonoLabel from '../../components/ui/MonoLabel.astro';
+
+const posts = (await getCollection('blog'))
+  .filter((p) => import.meta.env.DEV || !p.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+// Resolve every byline once rather than per card.
+const withAuthors = await Promise.all(
+  posts.map(async (post) => ({
+    post,
+    authors: await Promise.all(post.data.authors.map((ref) => getEntry(ref))),
+  }))
+);
+
+const allTags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+---
+
+<BaseLayout
+  title="Blog"
+  description="Build logs, retrospectives, and notes from the ESRA workshop."
+  sourcePath="site/blog/index.astro"
+>
+  <Section pad="hero">
+    <MonoLabel as="div" size="sm" track="label">From the log</MonoLabel>
+    <h1>Blog</h1>
+    <p class="lede">
+      Build logs, retrospectives, and notes from the workshop. Everything here is written by
+      the people doing the work.
+    </p>
+    <MonoLabel as="div" size="micro" track="wide" class="counts">
+      N={posts.length} entries · {allTags.length} tags ·
+      <a href="/rss.xml">RSS</a>
+    </MonoLabel>
+  </Section>
+
+  <Section pad="normal" last>
+    <ul class="posts">
+      {
+        withAuthors.map(({ post, authors }) => (
+          <li class="entry">
+            <a class="entry-link" href={`/blog/${post.id}`}>
+              {post.data.cover && (
+                <div class="thumb">
+                  <Image src={post.data.cover} alt="" width={480} loading="lazy" />
+                </div>
+              )}
+
+              <div class="entry-body">
+                <MonoLabel as="div" size="micro" track="widest">
+                  <time datetime={post.data.date.toISOString()}>
+                    {post.data.date.toISOString().slice(0, 10)}
+                  </time>
+                  {post.data.category && <> · {post.data.category}</>}
+                  {post.data.tags.length > 0 && (
+                    <> · {post.data.tags.map((t) => `#${t}`).join(' ')}</>
+                  )}
+                </MonoLabel>
+
+                <h2>{post.data.title}</h2>
+
+                {post.data.description && <p class="desc">{post.data.description}</p>}
+
+                <MonoLabel as="div" size="micro" track="wide" upper={false} class="by">
+                  {authors.map((a) => a!.data.name).join(' · ')}
+                </MonoLabel>
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin: var(--u) 0 0;
+    font-family: var(--font-display);
+    font-size: var(--t-display);
+    font-weight: var(--w-bold);
+    line-height: 1.05;
+    letter-spacing: var(--track-snug);
+    text-transform: uppercase;
+  }
+
+  .lede {
+    margin: var(--u) 0 0;
+    max-width: 456px;
+    font-size: var(--t-md);
+    line-height: var(--lh-grid);
+    color: var(--ink-body);
+  }
+
+  :global(.counts) {
+    display: block;
+    margin-top: var(--u);
+  }
+
+  .posts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: var(--rule-width) solid var(--rule);
+  }
+
+  .entry {
+    border-bottom: var(--rule-width) solid var(--rule);
+  }
+
+  .entry-link {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: var(--u);
+    padding: var(--u) 0;
+    text-decoration: none;
+    color: var(--ink-strong);
+    transition: background var(--dur-fast) var(--ease);
+  }
+
+  .entry-link:hover {
+    background: rgba(36, 36, 36, 0.04);
+    color: var(--ink-strong);
+  }
+
+  .thumb {
+    border: var(--rule-width) solid var(--rule-strong);
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+  }
+
+  .thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.08);
+  }
+
+  h2 {
+    margin: var(--u-quarter) 0 0;
+    font-size: var(--t-h3);
+    font-weight: var(--w-semibold);
+    letter-spacing: var(--track-snug);
+    line-height: var(--lh-grid);
+  }
+
+  .desc {
+    margin: var(--u-quarter) 0 0;
+    font-size: var(--t-base);
+    line-height: var(--lh-grid);
+    color: var(--ink-body);
+    max-width: 62ch;
+  }
+
+  .entry-link :global(.by) {
+    display: block;
+    margin-top: var(--u-half);
+  }
+
+  @media (max-width: 640px) {
+    .entry-link {
+      grid-template-columns: 1fr;
+      gap: var(--u-half);
+    }
+    .thumb {
+      aspect-ratio: 16 / 9;
+    }
+  }
+</style>

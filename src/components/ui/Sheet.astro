@@ -1,0 +1,82 @@
+---
+/**
+ * The document sheet — the bordered surface every page sits on, floating
+ * over the outer field. Owns the optional baseline-grid overlay.
+ *
+ * Sections placed inside are separated by their own rules; the sheet only
+ * provides the outer edge and the grid.
+ */
+interface Props {
+  /** Draw the 24px baseline grid behind the content. */
+  grid?: boolean;
+  /** Widen past the standard 1056px measure (used by the gallery). */
+  wide?: boolean;
+  class?: string;
+}
+
+const { grid = true, wide = false, class: className } = Astro.props;
+---
+
+<div class="field">
+  <div class:list={['sheet', { wide }, className]}>
+    {grid && <div class="grid-overlay" aria-hidden="true" data-grid-overlay></div>}
+    <div class="sheet-content">
+      <slot />
+    </div>
+  </div>
+</div>
+
+<style>
+  .field {
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    background: var(--paper);
+    color: var(--ink-strong);
+    padding: var(--u-2) var(--u);
+  }
+
+  .sheet {
+    position: relative;
+    width: 100%;
+    max-width: var(--sheet-max);
+    background: var(--sheet);
+    border: var(--rule-width) solid var(--rule-strong);
+    box-shadow: var(--shadow-sheet);
+  }
+
+  .sheet.wide {
+    max-width: 1400px;
+  }
+
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-grid);
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--rule-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--rule-grid) 1px, transparent 1px);
+    background-size: var(--u) var(--u);
+  }
+
+  .sheet-content {
+    position: relative;
+    z-index: var(--z-content);
+  }
+
+  /* On narrow screens the sheet metaphor costs more than it gives:
+     drop the outer margin so content keeps its full width. */
+  @media (max-width: 640px) {
+    .field {
+      padding: 0;
+    }
+
+    .sheet {
+      border-left: 0;
+      border-right: 0;
+      box-shadow: none;
+    }
+  }
+</style>

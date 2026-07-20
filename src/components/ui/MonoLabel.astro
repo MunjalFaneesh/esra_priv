@@ -1,0 +1,80 @@
+---
+/**
+ * The monospace utility label that carries most of the site's chrome —
+ * section kickers, field names, colophon text, metadata.
+ *
+ * Sizes map to the type scale. `tone` picks a contrast level; the default
+ * `muted` is the AA floor, so a label is always readable. `faint` is below
+ * AA and is intentionally unavailable here.
+ */
+interface Props {
+  as?: 'span' | 'div' | 'p' | 'h2' | 'h3';
+  size?: 'micro' | 'sm' | 'base';
+  tone?: 'strong' | 'body' | 'muted';
+  /** Letter-spacing preset. Wider tracking suits all-caps. */
+  track?: 'wide' | 'wider' | 'widest' | 'label';
+  upper?: boolean;
+  class?: string;
+}
+
+const {
+  as: Tag = 'span',
+  size = 'micro',
+  tone = 'muted',
+  track = 'widest',
+  upper = true,
+  class: className,
+} = Astro.props;
+---
+
+<Tag
+  class:list={['mono-label', `s-${size}`, `t-${tone}`, `k-${track}`, { upper }, className]}
+>
+  <slot />
+</Tag>
+
+<style>
+  .mono-label {
+    font-family: var(--font-mono);
+    font-weight: var(--w-regular);
+    line-height: var(--lh-grid);
+    margin: 0;
+  }
+
+  .s-micro {
+    font-size: var(--t-micro);
+  }
+  .s-sm {
+    font-size: var(--t-mono-sm);
+  }
+  .s-base {
+    font-size: var(--t-mono);
+  }
+
+  .t-strong {
+    color: var(--ink-strong);
+  }
+  .t-body {
+    color: var(--ink-body);
+  }
+  .t-muted {
+    color: var(--ink-muted);
+  }
+
+  .k-wide {
+    letter-spacing: var(--track-wide);
+  }
+  .k-wider {
+    letter-spacing: var(--track-wider);
+  }
+  .k-widest {
+    letter-spacing: var(--track-widest);
+  }
+  .k-label {
+    letter-spacing: var(--track-mono-label);
+  }
+
+  .upper {
+    text-transform: uppercase;
+  }
+</style>

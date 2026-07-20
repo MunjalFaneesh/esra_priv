@@ -1,0 +1,58 @@
+---
+/**
+ * A horizontal band of the sheet, separated from the next by a rule.
+ * Pairs with SectionHead for the standard kicker + optional aside row.
+ */
+interface Props {
+  id?: string;
+  /** Vertical padding. `tight` for dense listings, `hero` for openers. */
+  pad?: 'tight' | 'normal' | 'hero';
+  /** Suppress the closing rule (for the last band before the colophon). */
+  last?: boolean;
+  class?: string;
+}
+
+const { id, pad = 'normal', last = false, class: className } = Astro.props;
+---
+
+<section id={id} class:list={['section', `pad-${pad}`, { last }, className]}>
+  <slot />
+</section>
+
+<style>
+  .section {
+    border-bottom: var(--rule-width) solid var(--rule);
+  }
+
+  .section.last {
+    border-bottom: 0;
+  }
+
+  .pad-tight {
+    padding: var(--u) var(--u-2);
+  }
+  .pad-normal {
+    padding: var(--u-3) var(--u-2);
+  }
+  .pad-hero {
+    padding: var(--u-3) var(--u-2) var(--u-2);
+  }
+
+  @media (max-width: 860px) {
+    .pad-tight {
+      padding: var(--u) var(--u);
+    }
+    .pad-normal,
+    .pad-hero {
+      padding: var(--u-2) var(--u);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .pad-tight,
+    .pad-normal,
+    .pad-hero {
+      padding: var(--u-2) var(--u-half);
+    }
+  }
+</style>

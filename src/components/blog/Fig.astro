@@ -1,0 +1,74 @@
+---
+/**
+ * A figure, addressed by asset path rather than by import.
+ *
+ * Usage in markdown:
+ *   <Fig src="gallery/leg-test-stand.jpg" alt="The leg test stand."
+ *        caption="**Figure 1.** Assembled on a linear slide." />
+ *
+ * `margin` floats it into the side-note column, matching the blog design.
+ * A bad path fails the build with the available paths listed, rather than
+ * silently rendering an empty plate.
+ */
+import Figure from '../ui/Figure.astro';
+import { resolveAsset, requireAsset } from '../../lib/assets';
+
+interface Props {
+  src: string;
+  alt?: string;
+  caption?: string;
+  plate?: string;
+  ref?: string;
+  ratio?: string;
+  /** Float into the margin column. */
+  margin?: boolean;
+  dither?: boolean;
+  mono?: boolean;
+}
+
+const {
+  src,
+  alt = '',
+  caption,
+  plate,
+  ref,
+  ratio,
+  margin = false,
+  dither = true,
+  mono = true,
+} = Astro.props;
+
+// Remote and /public sources pass through untouched; local ones must exist.
+const resolved = resolveAsset(src) ? requireAsset(src, `<Fig src="${src}" />`) : src;
+---
+
+<div class:list={['fig-wrap', { margin }]}>
+  <Figure
+    src={resolved}
+    alt={alt}
+    caption={caption}
+    plate={plate}
+    ref={ref}
+    ratio={ratio ?? (margin ? '1/1' : '16/9')}
+    dither={dither}
+    mono={mono}
+    width={margin ? 560 : 1200}
+  />
+</div>
+
+<style>
+  .fig-wrap.margin {
+    float: right;
+    clear: right;
+    width: var(--margin-col);
+    margin: 0 calc(-1 * var(--margin-gutter)) var(--u) 0;
+  }
+
+  @media (max-width: 1000px) {
+    .fig-wrap.margin {
+      float: none;
+      width: auto;
+      margin: var(--u) 0;
+    }
+  }
+</style>

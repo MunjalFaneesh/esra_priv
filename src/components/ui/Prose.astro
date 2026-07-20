@@ -1,0 +1,174 @@
+---
+/**
+ * Typographic container for rendered Markdown.
+ *
+ * Everything an author writes in a .md file lands here, so this is where
+ * the reading experience is defined — measure, rhythm, code, quotes,
+ * tables, footnotes. Blog bodies additionally get the margin-note column
+ * from PostLayout; this handles the base flow.
+ */
+interface Props {
+  /** `wide` for docs pages, `measure` for essays. */
+  width?: 'measure' | 'wide' | 'full';
+  class?: string;
+}
+
+const { width = 'measure', class: className } = Astro.props;
+---
+
+<div class:list={['prose', `w-${width}`, className]}>
+  <slot />
+</div>
+
+<style>
+  .prose {
+    color: var(--ink-body);
+    font-size: var(--t-lg);
+    line-height: var(--lh-grid);
+  }
+
+  .w-measure {
+    max-width: var(--measure);
+  }
+  .w-wide {
+    max-width: var(--measure-wide);
+  }
+  .w-full {
+    max-width: none;
+  }
+
+  .prose :global(> * + *) {
+    margin-top: var(--u);
+  }
+
+  /* Headings sit in the monospace register, numbered by the document. */
+  .prose :global(h2),
+  .prose :global(h3),
+  .prose :global(h4) {
+    font-family: var(--font-mono);
+    font-weight: var(--w-semibold);
+    letter-spacing: var(--track-wider);
+    text-transform: uppercase;
+    color: var(--ink-body);
+    line-height: var(--lh-grid);
+    margin-top: var(--u-2);
+    margin-bottom: 0;
+  }
+
+  .prose :global(h2) {
+    font-size: var(--t-sm);
+  }
+  .prose :global(h3) {
+    font-size: var(--t-mono);
+  }
+  .prose :global(h4) {
+    font-size: var(--t-mono);
+    color: var(--ink-muted);
+  }
+
+  .prose :global(p) {
+    margin: 0;
+    hyphens: auto;
+  }
+
+  .prose :global(strong) {
+    font-weight: var(--w-semibold);
+    color: var(--ink-strong);
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin: 0;
+    padding-left: var(--u);
+  }
+
+  .prose :global(li + li) {
+    margin-top: var(--u-quarter);
+  }
+
+  .prose :global(li > ul),
+  .prose :global(li > ol) {
+    margin-top: var(--u-quarter);
+  }
+
+  .prose :global(blockquote) {
+    margin: 0;
+    padding-left: 20px;
+    border-left: var(--rule-width) solid var(--rule-strong);
+    font-size: var(--t-xl);
+    font-style: italic;
+    color: var(--ink-muted);
+  }
+
+  .prose :global(hr) {
+    border: 0;
+    border-top: var(--rule-width) solid var(--rule);
+    margin: var(--u-2) 0;
+  }
+
+  /* Inline code reads as a token, not a box */
+  .prose :global(:not(pre) > code) {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    padding: 1px 5px;
+    background: rgba(36, 36, 36, 0.07);
+    border: 1px solid var(--rule-soft);
+  }
+
+  .prose :global(pre) {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    line-height: 20px;
+    padding: var(--u-half);
+    border: var(--rule-width) solid var(--rule);
+    background: rgba(255, 255, 255, 0.06);
+    overflow-x: auto;
+  }
+
+  .prose :global(img) {
+    border: var(--rule-width) solid var(--rule-strong);
+  }
+
+  /* Tables scroll inside themselves rather than widening the page */
+  .prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--t-base);
+    display: block;
+    overflow-x: auto;
+  }
+
+  .prose :global(th),
+  .prose :global(td) {
+    text-align: left;
+    padding: var(--u-quarter) var(--u-half);
+    border-bottom: var(--rule-width) solid var(--rule-soft);
+  }
+
+  .prose :global(th) {
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+    text-transform: uppercase;
+    letter-spacing: var(--track-widest);
+    color: var(--ink-muted);
+    font-weight: var(--w-regular);
+    border-bottom-color: var(--rule);
+  }
+
+  .prose :global(.footnotes) {
+    margin-top: var(--u-2);
+    padding-top: var(--u);
+    border-top: var(--rule-width) solid var(--rule);
+    font-size: var(--t-sm);
+    color: var(--ink-muted);
+  }
+
+  /* Justified setting suits the document metaphor, but only where there
+     is enough measure for it to not open rivers. */
+  @media (min-width: 700px) {
+    .prose.w-measure :global(p),
+    .prose.w-wide :global(p) {
+      text-align: justify;
+    }
+  }
+</style>

@@ -1,0 +1,236 @@
+title: Leg Test Stand — Prototype BOM
+subject: Early prototype test stand and three quasi-direct-drive actuators
+updated: 2026-07-19
+currency: USD
+
+# Transcribed from the working spreadsheet. Two things are deliberately
+# NOT computed here:
+#
+#  1. The sheet's "Cost" column reads $0.00 on nearly every row while
+#     "Per Unit" carries real prices, and a lone "$49.55" appears under
+#     "Cost Left". Those columns are ambiguous without their formulas, so
+#     no project total is asserted. The component sums only the lines
+#     where unitPrice x unitQty is unambiguous, and labels it as such.
+#
+#  2. Rows with a blank quantity in the source are left blank rather than
+#     assumed to be 1.
+#
+# Quantities are free text because the source uses expressions like
+# "42 x 3 = 126" that carry more meaning than a bare number.
+notes: >-
+  Quantities are sized for three motors. Printed parts were run on a Bambu
+  X1C in PETG. Cost columns in the source spreadsheet were ambiguous, so
+  only per-unit prices are reproduced.
+
+lines:
+  - vendor: Amazon
+    item: 2x SBR20-800mm w/ 4x SBR20UU
+    qty: 2 slides, 4 blocks
+    unitPrice: 42.64
+    unitQty: 1
+    notes: Linear slide & blocks for stand. Sourced by Will.
+    purchased: true
+    links:
+      - label: CAD (GrabCAD)
+        url: https://grabcad.com/library/br20-shaft-and-support-rail-resizable-1
+
+  - vendor: Amazon
+    item: Flipsky ODESC V4.2 24V Controller
+    qty: 1
+    unitPrice: 42.99
+    unitQty: 1
+    notes: BLDC controller for FOC. Sourced by Will.
+    purchased: true
+    links:
+      - label: CAD (GrabCAD)
+        url: https://grabcad.com/library/odesc-v4-2-bldc-motor-driver-controller-1
+
+  - vendor: Amazon
+    item: Flipsky ODESC V4.2 24V Controller
+    qty: 2
+    unitPrice: 42.99
+    unitQty: 2
+    notes: BLDC controller for FOC. Sourced by Ryan.
+    purchased: true
+
+  - vendor: 3D Printed
+    item: Planetary gears
+    unitQty: 3
+    notes: Printed w/ X1C PETG
+    purchased: true
+
+  - vendor: 3D Printed
+    item: Rotor
+    notes: Printed w/ X1C PETG
+    purchased: true
+
+  - vendor: 3D Printed
+    item: Output
+    notes: Printed w/ X1C PETG
+    purchased: true
+
+  - vendor: 3D Printed
+    item: Planet holder
+    notes: Printed w/ X1C PETG
+    purchased: true
+
+  - vendor: 3D Printed
+    item: Stator lock
+    notes: Printed w/ X1C PETG
+    purchased: true
+
+  - vendor: 3D Printed
+    item: Outer housing and ring gear
+    notes: Printed w/ X1C PETG
+    purchased: true
+
+  - vendor: 3D Printed
+    item: Bearing retaining ring
+    notes: Printed w/ X1C PETG
+    purchased: true
+
+  - vendor: 3D Printed
+    item: Backplate
+    notes: Printed w/ X1C PETG
+    purchased: true
+
+  - vendor: SendCutSend
+    item: magnet holder planetary.dxf
+    qty: 9 x 3 = 27
+    unitQty: 27
+    notes: A36/1008 mild steel, .048" (1.2mm). Sourced by Ryan.
+    purchased: false
+
+  - vendor: Amazon
+    item: 26 AWG enamelled copper wire
+    qty: 1
+    unitPrice: 27.98
+    unitQty: 1
+    notes: Sourced by Ryan.
+    purchased: true
+
+  - vendor: AliExpress
+    item: 8110 Stator
+    qty: 3
+    unitPrice: 13.80
+    unitQty: 3
+    notes: Sourced by Ryan.
+    purchased: true
+
+  - vendor: Amazon
+    item: 12x5x3 N52 magnets, 70 pcs.
+    qty: 42 x 3 = 126
+    unitPrice: 9.99
+    unitQty: 2
+    notes: Must be 12x5x3 mm and N52. Sourced by Ryan.
+    purchased: true
+
+  - vendor: Amazon
+    item: uxcell 6709 bearing, 5 pcs.
+    unitPrice: 11.29
+    unitQty: 1
+    notes: Sourced by Ryan.
+    purchased: true
+    links:
+      - label: Datasheet (AST)
+        url: https://www.astbearings.com/catalog/root/6709-2RS
+
+  - vendor: Amazon
+    item: uxcell 6707 bearing, 10 pcs.
+    unitPrice: 28.09
+    unitQty: 1
+    notes: Sourced by Ryan.
+    purchased: true
+    links:
+      - label: Datasheet (AST)
+        url: https://www.astbearings.com/catalog/root/6707-2RS
+
+  - vendor: Amazon
+    item: uxcell 6702 bearing, 10 pcs.
+    unitPrice: 9.29
+    unitQty: 1
+    notes: Sourced by Ryan.
+    purchased: true
+    links:
+      - label: Datasheet (AST)
+        url: https://www.astbearings.com/catalog/root/6702-2RS
+
+  - vendor: Amazon
+    item: MR117 bearing
+    unitPrice: 7.99
+    unitQty: 1
+    notes: Sourced by Ryan.
+    purchased: true
+    links:
+      - label: CAD library (GrabCAD)
+        url: https://grabcad.com/library/complete-globally-parameterized-metric-double-sealed-mr-2rs-series-miniature-bearing-library-20240212-solidworks-and-step-models-of-the-deep-groove-lever-mr-2rs-double-sealed-series-of-miniature-metric-bearings-1
+
+  - vendor: Amazon
+    item: M3x5x4 heat-set inserts
+    unitPrice: 11.99
+    unitQty: 1
+    notes: Sourced by Ryan.
+    purchased: true
+
+  - vendor: Amazon
+    item: M2 screw kit
+    unitPrice: 6.99
+    unitQty: 1
+    notes: Sourced by Ryan.
+    purchased: true
+
+  - vendor: Amazon
+    item: Silicone-based lubricant
+    unitPrice: 9.99
+    unitQty: 1
+    notes: Sourced by Ryan.
+    purchased: true
+
+  - vendor: Amazon
+    item: 3mm x 18mm steel dowel pins
+    unitPrice: 9.99
+    unitQty: 1
+    notes: Sourced by Ryan.
+    purchased: true
+
+  - vendor: Amazon
+    item: Gorilla Glue Gel XL
+    unitPrice: 7.48
+    unitQty: 1
+    notes: To hold the diametric magnet.
+    purchased: true
+
+  - vendor: Amazon
+    item: JST-PH 2.0mm 2-pin
+    unitPrice: 5.99
+    unitQty: 1
+    notes: For reference motor CAN bus.
+    purchased: false
+
+  - vendor: Grainger
+    item: Gates timing belt, GT 392DD9
+    unitPrice: 43.56
+    unitQty: 1
+    notes: 5MGT-700
+    purchased: false
+    links:
+      - label: Product page
+        url: https://www.grainger.com/product/GATES-Timing-Belt-GT-392DD9
+
+  - vendor: Misumi
+    item: Tapped dowel pins, m6 tolerance
+    unitQty: 2
+    purchased: false
+
+  - vendor: Misumi
+    item: Keyless bushing timing belt pulley
+    notes: NFC alteration removes the bushing; keyless ones have screw mounts.
+    purchased: false
+
+  - vendor: Amazon
+    item: Misc. belts for prototyping
+    notes: Sourced by Will.
+    purchased: false
+    links:
+      - label: Product page
+        url: https://www.amazon.com/dp/B0CCLF5BGD

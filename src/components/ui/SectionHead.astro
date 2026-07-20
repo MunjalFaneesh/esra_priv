@@ -1,0 +1,65 @@
+---
+/**
+ * Section heading row: a monospace kicker on the left, optional aside on
+ * the right (a count, a link, a revision marker).
+ *
+ * The kicker is a real heading element so the page keeps a correct
+ * document outline — it only *looks* like a label.
+ */
+import MonoLabel from './MonoLabel.astro';
+
+interface Props {
+  title: string;
+  /** Heading level. Pick to keep the outline sequential, not for size. */
+  as?: 'h2' | 'h3';
+  /** Plain-text aside. For links or markup, use the `aside` slot. */
+  aside?: string;
+  class?: string;
+}
+
+const { title, as: Tag = 'h2', aside, class: className } = Astro.props;
+const hasAsideSlot = Astro.slots.has('aside');
+---
+
+<div class:list={['section-head', className]}>
+  <Tag class="title">{title}</Tag>
+  {
+    (aside || hasAsideSlot) && (
+      <div class="aside">
+        {hasAsideSlot ? <slot name="aside" /> : <MonoLabel size="micro">{aside}</MonoLabel>}
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--u);
+    margin-bottom: var(--u);
+  }
+
+  .title {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--w-medium);
+    letter-spacing: var(--track-mono-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    line-height: var(--lh-grid);
+  }
+
+  .aside {
+    flex: none;
+  }
+
+  @media (max-width: 560px) {
+    .section-head {
+      flex-direction: column;
+      gap: var(--u-quarter);
+    }
+  }
+</style>

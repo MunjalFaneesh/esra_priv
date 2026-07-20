@@ -5,6 +5,8 @@ import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 import icon from 'astro-icon';
 
+import { remarkWordCount } from './src/lib/remark-word-count.mjs';
+
 /**
  * Canonical origin. Every absolute URL on the site (sitemap, RSS, OG tags)
  * derives from this single value — switching domains is a one-line change.
@@ -53,6 +55,7 @@ export default defineConfig({
   ],
 
   markdown: {
+    remarkPlugins: [remarkWordCount],
     shikiConfig: {
       // Light-only: the site has a single paper-toned theme by design.
       theme: 'github-light',

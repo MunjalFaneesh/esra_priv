@@ -1,0 +1,50 @@
+---
+/**
+ * A numbered display equation, set in the serif face.
+ *
+ * Deliberately not a LaTeX engine: the existing corpus needs simple
+ * inline expressions, and KaTeX would add ~280 KB of JS plus a font to
+ * every post that has one formula. If a post ever needs real maths,
+ * add remark-math + rehype-katex and this component can defer to it.
+ *
+ * Usage in markdown:
+ *   <Eq n="1">τ_out = N · k_t · i_q − τ_f</Eq>
+ */
+interface Props {
+  /** Equation number shown in the right margin. */
+  n?: string | number;
+}
+
+const { n } = Astro.props;
+---
+
+<div class="eq" role="math">
+  <span class="body"><slot /></span>
+  {n && <span class="num" aria-hidden="true">({n})</span>}
+</div>
+
+<style>
+  .eq {
+    position: relative;
+    text-align: center;
+    margin: var(--u) 0;
+    font-family: var(--font-serif);
+    font-size: 20px;
+    line-height: var(--lh-grid);
+    color: var(--ink-strong);
+  }
+
+  .body {
+    font-style: italic;
+  }
+
+  .num {
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-style: normal;
+    color: var(--ink-muted);
+  }
+</style>

@@ -1,0 +1,91 @@
+---
+/**
+ * The teletype band at the top and bottom of every sheet — file path on
+ * the left, build provenance on the right.
+ *
+ * The git ref and SHA are real: they come from the deploying commit via
+ * Vercel's environment. Locally there is no commit to report, so the band
+ * says "local" rather than inventing a hash.
+ */
+import MonoLabel from './MonoLabel.astro';
+import { buildInfo, SITE } from '../../data/site';
+
+interface Props {
+  /** Repository-relative path of the source file for this page. */
+  path: string;
+  /** Render as the closing band (border-top instead of border-bottom). */
+  foot?: boolean;
+  /** Link text on the right of the opening band. */
+  sourceHref?: string;
+}
+
+const { path, foot = false, sourceHref = SITE.orgUrl } = Astro.props;
+const build = buildInfo();
+---
+
+<div class:list={['colophon', { foot }]}>
+  <MonoLabel size="micro" track="widest">
+    {
+      foot ? (
+        <>&copy; {new Date().getFullYear()} {SITE.name} &middot; esra.bot &middot; bg {SITE.colorRef}</>
+      ) : (
+        <>{SITE.name} &middot; {path}</>
+      )
+    }
+  </MonoLabel>
+
+  <MonoLabel size="micro" track="widest" class="right">
+    {
+      build.sha ? (
+        <>
+          <span>&#8903; {build.ref}@{build.sha}</span>
+          <a href={build.commitUrl} rel="noopener">commit &#8599;</a>
+        </>
+      ) : (
+        <span>&#8903; local build &middot; {build.date}</span>
+      )
+    }
+    {!foot && <a href={sourceHref} rel="noopener">source &#8599;</a>}
+  </MonoLabel>
+</div>
+
+<style>
+  .colophon {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--u-half);
+    min-height: var(--u-2);
+    padding: var(--u-quarter) var(--u);
+    border-bottom: var(--rule-width) solid var(--rule);
+  }
+
+  .colophon.foot {
+    border-bottom: 0;
+    border-top: var(--rule-width) solid var(--rule);
+  }
+
+  .colophon :global(.right) {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    text-align: right;
+  }
+
+  .colophon a {
+    text-decoration: none;
+  }
+
+  @media (max-width: 640px) {
+    .colophon {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      padding: var(--u-half) var(--u-half);
+    }
+
+    .colophon :global(.right) {
+      text-align: left;
+    }
+  }
+</style>

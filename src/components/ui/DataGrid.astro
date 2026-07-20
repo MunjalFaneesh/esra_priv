@@ -1,0 +1,56 @@
+---
+/**
+ * A ruled grid of cells — the workhorse for repos, partners, gallery
+ * tiles, and spec tables.
+ *
+ * The mockups drew these with per-cell border-right/border-bottom plus a
+ * border-top/left on the container, which double-rules whenever a row is
+ * short and breaks when columns reflow. This instead lets the container's
+ * background show through a 2px gap, so every rule is exactly one rule
+ * wide at any column count, with no per-cell bookkeeping.
+ */
+interface Props {
+  /** Fixed column count, or `auto` to fit by min width. */
+  cols?: number | 'auto';
+  /** Minimum cell width when cols="auto". */
+  min?: string;
+  class?: string;
+}
+
+const { cols = 'auto', min = '200px', class: className } = Astro.props;
+
+const template =
+  cols === 'auto' ? `repeat(auto-fill, minmax(${min}, 1fr))` : `repeat(${cols}, 1fr)`;
+---
+
+<div class:list={['data-grid', className]} style={`--cols: ${template}; --min: ${min};`}>
+  <slot />
+</div>
+
+<style>
+  .data-grid {
+    display: grid;
+    grid-template-columns: var(--cols);
+    gap: var(--rule-width);
+    background: var(--rule);
+    border: var(--rule-width) solid var(--rule);
+  }
+
+  /* Cells opt in by class so arbitrary children still work. */
+  .data-grid > :global(*) {
+    background: var(--sheet);
+    min-width: 0;
+  }
+
+  @media (max-width: 860px) {
+    .data-grid {
+      grid-template-columns: repeat(auto-fill, minmax(min(var(--min), 100%), 1fr));
+    }
+  }
+
+  @media (max-width: 520px) {
+    .data-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

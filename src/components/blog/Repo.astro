@@ -1,0 +1,118 @@
+---
+/**
+ * A repository card with live figures.
+ *
+ * Usage in markdown:
+ *   <Repo name="esrabot/mjlab" />
+ *
+ * Stars, language, and last-push are fetched at build. If the repo can't
+ * be resolved — private, renamed, or the API is down — the card still
+ * renders with the name and a link, minus the figures. It never shows a
+ * placeholder number.
+ */
+import MonoLabel from '../ui/MonoLabel.astro';
+import { getRepo, relativeTime } from '../../lib/github';
+
+interface Props {
+  name: string;
+  /** Override the fetched description. */
+  summary?: string;
+}
+
+const { name, summary } = Astro.props;
+const repo = await getRepo(name);
+
+const fullName = repo?.fullName ?? (name.includes('/') ? name : `esrabot/${name}`);
+const url = repo?.url ?? `https://github.com/${fullName}`;
+const description = summary ?? repo?.description ?? null;
+---
+
+<a class="repo" href={url} rel="noopener" target="_blank">
+  <div class="top">
+    <span class="dot" aria-hidden="true"></span>
+    <span class="name">{fullName}</span>
+    {repo?.isArchived && <span class="badge">archived</span>}
+  </div>
+
+  {description && <p class="desc">{description}</p>}
+
+  {
+    repo ? (
+      <MonoLabel as="div" size="micro" track="wide" class="stats">
+        {repo.language && <span>{repo.language}</span>}
+        <span>&#9733; {repo.stars}</span>
+        {repo.forks > 0 && <span>{repo.forks} forks</span>}
+        {repo.pushedAt && <span>{relativeTime(repo.pushedAt)}</span>}
+      </MonoLabel>
+    ) : (
+      /* No fabricated figures — just say the data isn't available. */
+      <MonoLabel as="div" size="micro" track="wide" class="stats">
+        <span>repository details unavailable</span>
+      </MonoLabel>
+    )
+  }
+</a>
+
+<style>
+  .repo {
+    display: block;
+    padding: var(--u-half) var(--u);
+    border: var(--rule-width) solid var(--rule);
+    background: rgba(255, 255, 255, 0.05);
+    text-decoration: none;
+    color: var(--ink-strong);
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .repo:hover {
+    border-color: var(--accent-ink);
+    color: var(--ink-strong);
+  }
+
+  .top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--ink-strong);
+    opacity: 0.7;
+    flex: none;
+  }
+
+  .name {
+    font-family: var(--font-mono);
+    font-size: var(--t-base);
+    font-weight: var(--w-semibold);
+    overflow-wrap: anywhere;
+  }
+
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--track-widest);
+    border: 1px solid var(--rule);
+    padding: 1px 5px;
+    color: var(--ink-muted);
+  }
+
+  .desc {
+    margin: var(--u-quarter) 0 0;
+    font-size: var(--t-base);
+    line-height: var(--lh-grid);
+    color: var(--ink-body);
+  }
+
+  .repo :global(.stats) {
+    display: flex;
+    gap: var(--u);
+    margin-top: var(--u-half);
+    padding-top: var(--u-quarter);
+    border-top: 1px solid var(--rule-soft);
+  }
+</style>

@@ -1,0 +1,96 @@
+# Gallery items.
+#
+# Migrated from the old site's content/gallery.yaml. Credits are preserved
+# verbatim — attribution is a real editorial convention here, and several
+# of these parts were designed by people outside the core team.
+#
+# `src` is a path relative to src/assets/ for images, or an absolute
+# /media/ path for video (video is served as-is, not optimised).
+#
+# To add an item: copy a block, drop the file in src/assets/gallery/,
+# and run `pnpm optimize:assets`.
+
+- id: custom-actuator-external
+  type: image
+  title: Custom Actuator (External)
+  date: 2025-08-10
+  src: gallery/custom-actuator-external.jpg
+  alt: Exterior view of a 3D-printed quasi-direct-drive actuator.
+  category: Hardware
+  tags: [custom-actuator]
+  credits: "Designed by Nachum Twersky. Built by CCBR. Photo: Ryan Rudes."
+
+- id: custom-actuator-internal
+  type: image
+  title: Custom Actuator (Internal)
+  date: 2025-08-10
+  src: gallery/custom-actuator-internal.jpg
+  alt: Internal view of the actuator showing the hand-wound stator.
+  category: Hardware
+  tags: [custom-actuator]
+  credits: "Designed by Nachum Twersky. Built by CCBR. Photo: Ryan Rudes."
+
+- id: box-of-actuators
+  type: image
+  title: Box of Custom Actuators
+  date: 2025-08-10
+  # Shared with the blog asset — this file was duplicated in the old repo
+  # under two paths; it is stored once here.
+  src: blog/actuators.jpg
+  alt: A box holding several completed custom actuators.
+  category: Hardware
+  tags: [custom-actuator]
+  credits: "Designed by Nachum Twersky. Built by CCBR. Photo: Ryan Rudes."
+
+- id: spinning-custom-actuator
+  type: video
+  title: Spinning Custom Actuator
+  date: 2025-07-21
+  src: /media/spinning-custom-actuator.mp4
+  alt: A custom actuator spinning under power on the bench.
+  category: Hardware
+  tags: [custom-actuator]
+  credits: "Designed by Nachum Twersky. Built by CCBR."
+
+- id: leg-integration-test
+  type: video
+  title: Leg Integration Test
+  date: 2025-08-22
+  src: /media/running-leg.mp4
+  alt: The 3-DoF leg running on the test stand.
+  category: Hardware
+  tags: [leg]
+  credits: "Designed and built by CCBR."
+
+- id: mini-pi-robot
+  type: image
+  title: Mini π Robot
+  date: 2025-07-26
+  src: blog/fallen-bot.jpg
+  alt: The Mini π sub-scale humanoid testbed.
+  # The old site left this uncategorised, which excluded it from every
+  # category filter. Categorised here so it is actually reachable.
+  category: Hardware
+  tags: [mini-pi-robot]
+
+- id: completed-custom-actuator
+  type: image
+  title: Completed Custom Actuator
+  date: 2025-08-24
+  src: gallery/completed-custom-actuator.jpg
+  alt: A fully assembled custom actuator.
+  category: Hardware
+  tags: [custom-actuator]
+  credits: "Designed by Nachum Twersky. Built by CCBR. Photo: Ryan Rudes."
+
+- id: leg-test-stand
+  type: image
+  title: Leg Test Stand
+  # Capture date. The old filename carried 2025-09-26, which was the
+  # upload date rather than when the photo was taken.
+  date: 2025-09-23
+  src: gallery/leg-test-stand.jpg
+  alt: The leg test stand assembled on a linear slide.
+  category: Hardware
+  tags: [leg, test-stand]
+  credits: "Designed by Luis Serrano Laguna. Photo by Ryan Rudes."

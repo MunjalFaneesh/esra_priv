@@ -1,0 +1,128 @@
+---
+/**
+ * A bordered link chip: `[gh  willcforte  ↗]`.
+ *
+ * Used for member socials, org links, and call-to-action buttons. When
+ * given a `platform` it labels and icons itself from the registry, so
+ * callers never hardcode a platform name.
+ */
+import { Icon } from 'astro-icon/components';
+import { PLATFORM_META, type Platform } from '../../data/orgs';
+
+interface Props {
+  href: string;
+  /** Pulls icon + short tag from the platform registry. */
+  platform?: Platform;
+  /** Overrides the platform's short tag. */
+  tag?: string;
+  /** Visible text. Defaults to the platform label. */
+  label?: string;
+  /** Fill the chip (primary action). */
+  solid?: boolean;
+  size?: 'sm' | 'base';
+  class?: string;
+}
+
+const {
+  href,
+  platform,
+  tag,
+  label,
+  solid = false,
+  size = 'base',
+  class: className,
+} = Astro.props;
+
+const meta = platform ? PLATFORM_META[platform] : undefined;
+const shortTag = tag ?? meta?.short;
+const text = label ?? meta?.label ?? href;
+
+// mailto: and relative links are same-context; only http(s) opens away.
+const external = /^https?:/.test(href);
+const accessibleName = meta && !label ? `${meta.label}: ${text}` : undefined;
+---
+
+<a
+  href={href}
+  class:list={['chip', `s-${size}`, { solid }, className]}
+  rel={external ? 'noopener' : undefined}
+  target={external ? '_blank' : undefined}
+  aria-label={accessibleName}
+>
+  {meta && <Icon name={meta.icon} class="icon" aria-hidden="true" />}
+  {shortTag && <span class="tag">{shortTag}</span>}
+  <span class="text">{text}</span>
+  {external && <span class="arrow" aria-hidden="true">&#8599;</span>}
+</a>
+
+<style>
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--u-quarter);
+    height: var(--u-2);
+    padding: 0 var(--u-half);
+    border: var(--rule-width) solid var(--rule-strong);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono-sm);
+    letter-spacing: var(--track-wide);
+    color: var(--ink-strong);
+    text-decoration: none;
+    background: transparent;
+    transition:
+      background var(--dur) var(--ease),
+      border-color var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+  }
+
+  .chip:hover {
+    border-color: var(--accent-ink);
+    color: var(--accent-ink);
+  }
+
+  .chip.solid {
+    background: var(--ink);
+    color: var(--ink-inverse);
+    border-color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: var(--track-wider);
+  }
+
+  .chip.solid:hover {
+    background: var(--accent-ink);
+    border-color: var(--accent-ink);
+    color: var(--ink-inverse);
+  }
+
+  .s-sm {
+    height: var(--u-3);
+    height: 32px;
+    font-size: var(--t-micro);
+    padding: 0 10px;
+  }
+
+  .icon {
+    width: 13px;
+    height: 13px;
+    flex: none;
+  }
+
+  .tag {
+    color: var(--ink-muted);
+  }
+
+  .solid .tag {
+    color: inherit;
+    opacity: 0.7;
+  }
+
+  .text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .arrow {
+    opacity: 0.5;
+  }
+</style>

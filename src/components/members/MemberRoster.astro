@@ -1,0 +1,337 @@
+---
+/**
+ * The members registry: a selectable roster on the left, the selected
+ * member's record on the right.
+ *
+ * Selection is a real navigation, not client state — each row is a link
+ * to /members/<id>, which is statically rendered. That makes every
+ * member's record shareable, crawlable, and fully functional with no
+ * JavaScript, which the mockup's ephemeral in-page state was not.
+ */
+import { Image } from 'astro:assets';
+import { render, type CollectionEntry } from 'astro:content';
+
+import MonoLabel from '../ui/MonoLabel.astro';
+import LinkChip from '../ui/LinkChip.astro';
+import Prose from '../ui/Prose.astro';
+import { memberCode, initials } from '../../lib/order';
+import { getOrg } from '../../data/orgs';
+
+interface Props {
+  members: CollectionEntry<'members'>[];
+  selected: CollectionEntry<'members'>;
+}
+
+const { members, selected } = Astro.props;
+
+// The bio lives in the markdown body so it can be edited without touching
+// frontmatter or YAML quoting rules.
+const { Content } = await render(selected);
+
+const roleLine = selected.data.roles
+  .map((r) => {
+    const org = getOrg(r.org);
+    const orgName = org?.name ?? r.org;
+    return r.title ? `${r.title}, ${orgName}` : orgName;
+  })
+  .join(' · ');
+---
+
+<div class="registry">
+  <!-- Roster -->
+  <div class="roster">
+    <div class="roster-head">
+      <MonoLabel size="micro" track="widest">ID</MonoLabel>
+      <MonoLabel size="micro" track="widest">Name / Team</MonoLabel>
+      <span></span>
+    </div>
+
+    <ul class="rows">
+      {
+        members.map((m) => {
+          const isSelected = m.id === selected.id;
+          return (
+            <li>
+              <a
+                href={`/members/${m.id}`}
+                class:list={['row', { selected: isSelected }]}
+                aria-current={isSelected ? 'true' : undefined}
+              >
+                <span class="code">{memberCode(m.data.order)}</span>
+                <span class="who">
+                  <strong>{m.data.name}</strong>
+                  <span class="meta">
+                    {[m.data.discipline, m.data.affiliation].filter(Boolean).join(' · ')}
+                  </span>
+                </span>
+                <span class="mark" aria-hidden="true">{isSelected ? '●' : '○'}</span>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+
+  <!-- Selected record -->
+  <article class="record">
+    <header class="record-head">
+      <div class="avatar">
+        {
+          selected.data.avatar ? (
+            <Image
+              src={selected.data.avatar}
+              alt=""
+              width={192}
+              height={192}
+              class="avatar-img"
+            />
+          ) : (
+            <span class="avatar-initials" aria-hidden="true">
+              {initials(selected.data.name)}
+            </span>
+          )
+        }
+        <span class="avatar-dither" aria-hidden="true"></span>
+      </div>
+
+      <div class="ident">
+        <MonoLabel size="micro" track="label">
+          {roleLine || selected.data.discipline || 'Member'} · {memberCode(selected.data.order)}
+        </MonoLabel>
+        <h2>{selected.data.name}</h2>
+        {selected.data.affiliation && (
+          <MonoLabel as="div" size="sm" track="wide" upper={false}>
+            {selected.data.affiliation}
+          </MonoLabel>
+        )}
+      </div>
+    </header>
+
+    <MonoLabel as="div" size="micro" class="field-label">Bio</MonoLabel>
+    <Prose class="bio"><Content /></Prose>
+
+    <MonoLabel as="div" size="micro" class="field-label">Find them</MonoLabel>
+    {
+      selected.data.links.length > 0 ? (
+        <div class="links">
+          {selected.data.links.map((link) => (
+            <LinkChip
+              href={link.url}
+              platform={link.platform}
+              label={link.handle ?? undefined}
+            />
+          ))}
+        </div>
+      ) : (
+        <p class="no-links">
+          No public profiles listed yet.{' '}
+          <a href="https://github.com/esrabot/web/tree/main/src/content/members" rel="noopener">
+            Add yours &#8599;
+          </a>
+        </p>
+      )
+    }
+  </article>
+</div>
+
+<style>
+  .registry {
+    display: grid;
+    grid-template-columns: 0.82fr 1.18fr;
+    border-bottom: var(--rule-width) solid var(--rule);
+  }
+
+  /* --- roster --- */
+  .roster {
+    border-right: var(--rule-width) solid var(--rule);
+  }
+
+  .roster-head,
+  .row {
+    display: grid;
+    grid-template-columns: 56px 1fr 20px;
+    gap: var(--u-half);
+    align-items: center;
+    padding: 0 20px;
+  }
+
+  .roster-head {
+    height: var(--u-2);
+    border-bottom: var(--rule-width) solid var(--rule);
+  }
+
+  .rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .row {
+    min-height: var(--u-3);
+    padding-top: var(--u-half);
+    padding-bottom: var(--u-half);
+    border-bottom: var(--rule-width) solid var(--rule-soft);
+    text-decoration: none;
+    color: var(--ink-strong);
+    transition: background var(--dur-fast) var(--ease);
+  }
+
+  .row:hover {
+    background: rgba(36, 36, 36, 0.05);
+    color: var(--ink-strong);
+  }
+
+  .row.selected {
+    background: rgba(36, 36, 36, 0.07);
+  }
+
+  .code {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    color: var(--ink-muted);
+  }
+
+  .who strong {
+    display: block;
+    font-size: var(--t-lg);
+    font-weight: var(--w-semibold);
+    line-height: var(--lh-grid);
+    letter-spacing: var(--track-snug);
+  }
+
+  .who .meta {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-wide);
+    color: var(--ink-muted);
+  }
+
+  .mark {
+    font-family: var(--font-mono);
+    font-size: var(--t-base);
+    color: var(--accent-ink);
+    text-align: right;
+  }
+
+  /* --- record --- */
+  .record {
+    padding: var(--u-half) 40px var(--u-2);
+    min-height: 528px;
+  }
+
+  .record-head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--u);
+    padding: var(--u) 0;
+    border-bottom: var(--rule-width) solid var(--rule-soft);
+  }
+
+  .avatar {
+    position: relative;
+    flex: none;
+    width: 96px;
+    height: 96px;
+    border: var(--rule-width) solid var(--rule-strong);
+    background: var(--sheet-sunk);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.08);
+  }
+
+  .avatar-initials {
+    font-family: var(--font-display);
+    font-size: 34px;
+    font-weight: var(--w-bold);
+    letter-spacing: var(--track-tight);
+    color: var(--ink-strong);
+  }
+
+  .avatar-dither {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(var(--dither-dot) 0.5px, transparent 0.7px);
+    background-size: var(--dither-size) var(--dither-size);
+    mix-blend-mode: multiply;
+    opacity: 0.4;
+  }
+
+  .ident {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ident h2 {
+    margin: var(--u-quarter) 0;
+    font-size: var(--t-h2);
+    font-weight: var(--w-semibold);
+    letter-spacing: var(--track-tight);
+    line-height: var(--lh-grid);
+  }
+
+  .record :global(.field-label) {
+    display: block;
+    padding: var(--u) 0 var(--u-quarter);
+  }
+
+  .bio {
+    max-width: 520px;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .no-links {
+    margin: 0;
+    font-size: var(--t-base);
+    color: var(--ink-muted);
+  }
+
+  /* Stack below the split-pane breakpoint. The roster stays above the
+     record so the reading order matches the visual order. */
+  @media (max-width: 860px) {
+    .registry {
+      grid-template-columns: 1fr;
+    }
+
+    .roster {
+      border-right: 0;
+      border-bottom: var(--rule-width) solid var(--rule);
+    }
+
+    .record {
+      padding: 0 var(--u) var(--u-2);
+      min-height: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .roster-head,
+    .row {
+      grid-template-columns: 48px 1fr 16px;
+      padding: 0 var(--u-half);
+    }
+
+    .record {
+      padding: 0 var(--u-half) var(--u);
+    }
+
+    .record-head {
+      gap: var(--u-half);
+    }
+  }
+</style>

@@ -1,0 +1,97 @@
+---
+/**
+ * A specification table — key/value pairs in the instrument-panel idiom.
+ *
+ * Usage in markdown:
+ *   <Spec items={[
+ *     ['Slots / poles', '21 / 14'],
+ *     ['Winding', '32 turns, 24 AWG, wye'],
+ *     ['Reduction', 'N = 6'],
+ *   ]} />
+ */
+interface Props {
+  items: [string, string][];
+  title?: string;
+  /** Two columns of pairs instead of one. */
+  dense?: boolean;
+}
+
+const { items, title, dense = false } = Astro.props;
+---
+
+<div class:list={['spec', { dense }]}>
+  {title && <p class="title">{title}</p>}
+  <dl>
+    {
+      items.map(([key, value]) => (
+        <div class="pair">
+          <dt>{key}</dt>
+          <dd>{value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</div>
+
+<style>
+  .spec {
+    border: var(--rule-width) solid var(--rule);
+    background: rgba(255, 255, 255, 0.05);
+    padding: var(--u-half) var(--u);
+  }
+
+  .title {
+    margin: 0 0 var(--u-quarter);
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-mono-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  dl {
+    margin: 0;
+    display: grid;
+    gap: 0;
+  }
+
+  .dense dl {
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--u);
+  }
+
+  .pair {
+    display: grid;
+    grid-template-columns: minmax(120px, 40%) 1fr;
+    gap: var(--u-half);
+    padding: var(--u-quarter) 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .pair:last-child {
+    border-bottom: 0;
+  }
+
+  dt {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    color: var(--ink-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-size: var(--t-base);
+    line-height: var(--lh-grid);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 620px) {
+    .dense dl {
+      grid-template-columns: 1fr;
+    }
+    .pair {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+</style>
