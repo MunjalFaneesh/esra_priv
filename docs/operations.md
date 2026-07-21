@@ -78,58 +78,83 @@ the domain's nameservers. Nothing about ownership or renewal changes.
 
 ## 4. Point the domain at Vercel
 
-In Cloudflare **DNS → Records**, add what Vercel's Domains screen told you to.
-The standard Vercel apex setup:
+First **add `esra.bot` to the `esra-web` project** (step 2) — the domain is not
+attached yet, only `rudynamics.org` and `willcforte.com` are on the account.
+Vercel's Domains screen then shows the exact record to create.
+
+In Cloudflare **DNS → Records**, add it. The standard Vercel apex setup, and the
+reliable one:
 
 | Type  | Name  | Value                  | Proxy                     |
 | ----- | ----- | ---------------------- | ------------------------- |
 | A     | `@`   | `76.76.21.21`          | **DNS only (grey cloud)** |
 | CNAME | `www` | `cname.vercel-dns.com` | **DNS only (grey cloud)** |
 
-**The grey cloud is not optional.** With Cloudflare's proxy on (orange cloud),
-Cloudflare terminates TLS itself and Vercel cannot complete the Let's Encrypt
-challenge — the domain sits "invalid configuration" forever and you may get
-redirect loops. Click the cloud icon until it is grey on both records. Use the
-exact IP/target Vercel shows in your project if it differs from the above.
+Use the exact IP/target Vercel shows for the project — it is authoritative and
+occasionally differs from the above.
 
-Within a few minutes Vercel's Domains screen turns green and issues the
-certificate.
+**On the grey vs. orange cloud.** With the proxy ON (orange cloud), Cloudflare
+terminates TLS, and during initial setup Vercel cannot complete its certificate
+challenge — the domain can sit "invalid configuration" with redirect loops. The
+dependable path is **grey-cloud (DNS-only)** and let Vercel serve TLS directly.
 
-## 5. Email — Zoho holds the mailboxes
+Your `rudynamics.org` actually runs orange-clouded through Cloudflare into
+Vercel, so if you want the same for `esra.bot` (Cloudflare CDN/DDoS in front):
+grey-cloud first, wait for Vercel to issue the cert and go green, set Cloudflare
+**SSL/TLS → Full (strict)**, then flip to orange. Doing it in that order avoids
+the provisioning deadlock.
 
-The live mailboxes are on **Zoho Mail** (free plan): `info@esra.bot`,
-`engineering@esra.bot`, `vibhu@esra.bot`. For mail to arrive, the domain's **MX
-records must point at Zoho**. Get the exact records from **Zoho Mail Admin
-Console → Domains → `esra.bot` → Email Configuration** — the hostnames vary by
-which Zoho data centre the account is in (`.com`, `.eu`, `.in`, …), so copy
-theirs rather than trusting a generic list. For the US data centre they are:
+## 5. Email — already configured, carry it across carefully
 
-| Type | Name | Value          | Priority | Proxy    |
-| ---- | ---- | -------------- | -------- | -------- |
-| MX   | `@`  | `mx.zoho.com`  | 10       | DNS only |
-| MX   | `@`  | `mx2.zoho.com` | 20       | DNS only |
-| MX   | `@`  | `mx3.zoho.com` | 50       | DNS only |
+**Email is already set up and working.** `esra.bot` on Dynadot already serves
+the full Zoho record set: MX (mx/mx2/mx3.zoho.com), the `zoho-verification` TXT,
+and SPF (`v=spf1 include:zohomail.com ~all`). Mail to `info@`, `engineering@`,
+and `vibhu@esra.bot` flows today.
 
-MX records are never proxied; Cloudflare greys them automatically.
+That means step 3 (moving nameservers to Cloudflare) is the **risky** step for
+email: whatever Cloudflare does not know about stops existing the moment the
+nameservers flip. So:
 
-Then three TXT records so mail you _send_ is trusted and not spoofable:
+1. When you add the site in Cloudflare, its scanner imports existing records.
+   **Verify every mail record came across** before flipping — the three MX, the
+   `zoho-verification` TXT, and the SPF TXT. Re-add by hand anything missing.
+2. Only then change the nameservers at Dynadot.
 
-| Type | Name                    | Value                                        | Purpose                                          |
-| ---- | ----------------------- | -------------------------------------------- | ------------------------------------------------ |
-| TXT  | `@`                     | `v=spf1 include:zohomail.com ~all`           | **SPF** — authorises Zoho to send as the domain  |
-| TXT  | `<selector>._domainkey` | (the long key Zoho generates)                | **DKIM** — cryptographically signs outgoing mail |
-| TXT  | `_dmarc`                | `v=DMARC1; p=none; rua=mailto:info@esra.bot` | **DMARC** — reporting, start permissive          |
+The current records to preserve:
 
-Notes that bite people:
+| Type | Name | Value                                                        |
+| ---- | ---- | ------------------------------------------------------------ |
+| MX   | `@`  | `mx.zoho.com` (10), `mx2.zoho.com` (20), `mx3.zoho.com` (50) |
+| TXT  | `@`  | `zoho-verification=zb12282582.zmverify.zoho.com`             |
+| TXT  | `@`  | `v=spf1 include:zohomail.com ~all`                           |
 
-- **One SPF record only.** If a TXT `@` starting `v=spf1` already exists, edit it
-  to add `include:zohomail.com` — do not create a second. Two SPF records is a
-  hard failure.
-- **DKIM** is enabled from Zoho's console (Email Configuration → DKIM), which
-  gives you the selector name and the key value to paste. Verify it in Zoho
-  after adding.
-- **DMARC** starts at `p=none` (monitor only). Once SPF and DKIM verify clean for
-  a week or two, tighten to `p=quarantine` then `p=reject`.
+### One bug to fix during the move: DKIM is in the wrong place
+
+There is a `v=DKIM1; k=rsa; p=…` record published at the **apex** (`esra.bot`
+itself). DKIM at the apex does nothing — verifiers only look it up at
+`<selector>._domainkey.esra.bot`, and nothing is published there, so outgoing
+mail is currently **unsigned**. Not urgent (mail still delivers on SPF), but
+worth fixing while you are in the DNS anyway:
+
+1. In **Zoho Admin Console → Email Configuration → DKIM**, read the **selector**
+   Zoho assigned for `esra.bot` and its public key.
+2. In Cloudflare, publish that key as TXT at `<selector>._domainkey` (not at
+   `@`), then delete the stray apex `v=DKIM1` record.
+3. Back in Zoho, click **Verify** on the DKIM entry.
+
+### Add DMARC (recommended, not present today)
+
+`_dmarc.esra.bot` has no record. Add one, starting permissive:
+
+| Type | Name     | Value                                        |
+| ---- | -------- | -------------------------------------------- |
+| TXT  | `_dmarc` | `v=DMARC1; p=none; rua=mailto:info@esra.bot` |
+
+Leave it at `p=none` (monitor only) for a week or two; once SPF and DKIM verify
+clean, tighten to `p=quarantine` then `p=reject`.
+
+Note: keep exactly **one** SPF record. The apex already has the correct one —
+don't add a second, since two `v=spf1` records is a hard failure.
 
 ### About Cloudflare Email Routing for aliases
 
