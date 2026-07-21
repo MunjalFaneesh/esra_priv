@@ -19,8 +19,7 @@ const { grid = true, wide = false, class: className } = Astro.props;
 
 <div class="field">
   <div class:list={['sheet', { wide }, className]}>
-    {grid && <div class="grid-overlay" aria-hidden="true" data-grid-overlay />}
-    <div class="sheet-content">
+    <div class:list={['sheet-content', { 'grid-on': grid }]}>
       <slot />
     </div>
   </div>
@@ -50,17 +49,11 @@ const { grid = true, wide = false, class: className } = Astro.props;
     max-width: 1400px;
   }
 
-  .grid-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: var(--z-grid);
-    pointer-events: none;
-    background-image:
-      linear-gradient(var(--rule-grid) 1px, transparent 1px),
-      linear-gradient(90deg, var(--rule-grid) 1px, transparent 1px);
-    background-size: var(--u) var(--u);
-  }
-
+  /*
+   * The baseline grid is drawn per section, not here — see `.grid-on
+   * .section` in global.css for why. The header (outside any section)
+   * intentionally has no grid behind it.
+   */
   .sheet-content {
     position: relative;
     z-index: var(--z-content);

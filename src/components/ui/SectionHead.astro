@@ -22,7 +22,7 @@ const hasAsideSlot = Astro.slots.has('aside');
 ---
 
 <div class:list={['section-head', className]}>
-  <Tag class="title">{title}</Tag>
+  <Tag class="title on-grid">{title}</Tag>
   {
     (aside || hasAsideSlot) && (
       <div class="aside">
@@ -38,6 +38,11 @@ const hasAsideSlot = Astro.slots.has('aside');
     align-items: baseline;
     justify-content: space-between;
     gap: var(--u);
+    /* Exactly one cell. Baseline-aligning a 12px title with a 10px aside
+       otherwise expands the row to ~26px, which pushes the content below
+       it 2px off the section grid. Both children have a 24px line box, so
+       they fit; the tiny baseline-alignment overflow is invisible. */
+    height: var(--u);
     margin-bottom: var(--u);
   }
 
@@ -60,6 +65,8 @@ const hasAsideSlot = Astro.slots.has('aside');
     .section-head {
       flex-direction: column;
       gap: var(--u-quarter);
+      /* Two stacked rows now — let it take the height it needs. */
+      height: auto;
     }
   }
 </style>

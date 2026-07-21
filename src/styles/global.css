@@ -193,6 +193,31 @@ a:hover {
   transform: none;
 }
 
+/*
+ * Per-section baseline grid.
+ * --------------------------
+ * The grid is drawn on each section from the section's own top, not once
+ * across the whole sheet. That is deliberate: a continuous grid demands
+ * that EVERY block height be a 24px multiple, which images and variable-
+ * height cards never are, so a single off-grid section used to push every
+ * section below it down — a visible cascade.
+ *
+ * Resetting per section confines any residual to within one band: every
+ * section's content starts a whole number of cells below its own top
+ * (the vertical padding is a grid multiple), so headings and copy sit on
+ * the lines drawn behind them regardless of how tall the previous section
+ * happened to be. The reset lands on the 2px rule between sections, where
+ * it is invisible.
+ */
+.grid-on .section {
+  background-image:
+    linear-gradient(var(--rule-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rule-grid) 1px, transparent 1px);
+  background-size: var(--u) var(--u);
+  background-position: 0 0;
+  background-origin: border-box;
+}
+
 /* Screen-reader-only utility */
 .sr-only {
   position: absolute;
