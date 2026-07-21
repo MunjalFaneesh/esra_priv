@@ -154,7 +154,15 @@ export function getOrgRepos(org = 'esrabot'): Promise<RepoInfo[]> {
       return [];
     }
 
-    const repos = raw.map(normalise);
+    // Drop private repos at the source. With GITHUB_TOKEN set (as in CI) the
+    // org endpoint returns private repos too, and .cache/github.json is a
+    // TRACKED file — so persisting them would leak private repo names and
+    // descriptions into git history, and into the public world the moment
+    // this repo is made public. The site only ever renders public repos, so
+    // private ones are stripped here and never enter the cache or a page.
+    // To deliberately feature a private repo later, add an explicit
+    // allowlist rather than widening this.
+    const repos = raw.map(normalise).filter((r) => !r.isPrivate);
     await writeCache({ fetchedAt: Date.now(), repos });
     return repos;
   })();
