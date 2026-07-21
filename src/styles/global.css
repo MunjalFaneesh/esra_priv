@@ -159,18 +159,30 @@ a:hover {
  * which have no fixed value to precompute against.
  */
 /*
- * Doubled class is deliberate. Astro emits scoped component styles after
- * this file, and those rules routinely set shorthand `margin` on the same
- * elements — a single-class selector here would lose to them and the
- * correction would silently do nothing. 0-2-0 clears a scoped `.lede`.
+ * The shift is applied with a transform, not padding, on purpose. An
+ * earlier version used `padding-top` plus a negative `margin-bottom` to
+ * stay flow-neutral — but that only cancels out where adjacent margins
+ * collapse, i.e. normal block flow. Inside a flex or grid container
+ * (the home hero column, the featured cards) margins do not collapse, so
+ * the negative margin did nothing and every element's padding became
+ * permanent downward drift that accumulated down the column. That was the
+ * ~1/3-cell offset that survived two fixes.
+ *
+ * A transform moves only the painted text; it never participates in
+ * layout, so it behaves identically in flow, flex and grid and cannot
+ * push a sibling. The layout boxes are already on the grid (the design
+ * spaces them in 24px multiples); this only nudges the baseline within
+ * each box onto the nearest line.
+ *
+ * Doubled class raises specificity to 0-2-0 so it wins over a scoped
+ * component rule that sets `transform` or `margin` on the same element.
  */
 .on-grid.on-grid {
   --_lh: var(--lh, var(--lh-grid));
   --_baseline: calc(var(--_lh) / 2 + var(--bl-k) * 1em);
   --_shift: calc(round(up, var(--_baseline), var(--u)) - var(--_baseline));
 
-  padding-top: var(--_shift);
-  margin-bottom: calc(-1 * var(--_shift));
+  transform: translateY(var(--_shift));
 }
 
 /*
@@ -178,8 +190,7 @@ a:hover {
  * own text vertically (a button, a chip) must not be shifted.
  */
 .on-grid.on-grid:where(button, [role='button'], .chip) {
-  padding-top: 0;
-  margin-bottom: 0;
+  transform: none;
 }
 
 /* Screen-reader-only utility */

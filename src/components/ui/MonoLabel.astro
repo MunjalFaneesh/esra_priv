@@ -26,22 +26,15 @@ const {
   class: className,
 } = Astro.props;
 
-// Baseline correction only means anything on a block box — padding-top on
-// an inline span does not move the text. Inline labels inherit the grid
-// position of whatever line they sit in, which is what we want anyway.
-const onGrid = Tag !== 'span';
+// Baseline correction (.on-grid) is deliberately NOT applied here. It only
+// lands the text correctly when the element's own box-top is already on the
+// 24px grid, which is true in some placements (the hero column) and not in
+// others (a label inside a card or a baseline-aligned flex row). Applying it
+// blanket-wise pushed the aligned ones right and the unaligned ones wrong.
+// So callers opt in with class="on-grid" where the box-top is grid-aligned.
 ---
 
-<Tag
-  class:list={[
-    'mono-label',
-    `s-${size}`,
-    `t-${tone}`,
-    `k-${track}`,
-    { upper, 'on-grid': onGrid },
-    className,
-  ]}
->
+<Tag class:list={['mono-label', `s-${size}`, `t-${tone}`, `k-${track}`, { upper }, className]}>
   <slot />
 </Tag>
 

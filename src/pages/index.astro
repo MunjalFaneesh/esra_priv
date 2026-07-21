@@ -61,7 +61,9 @@ const schoolCount = new Set(partners.map((p) => p.data.school)).size;
   <Section pad="hero">
     <div class="hero">
       <div>
-        <MonoLabel as="div" size="sm" track="label">Robotics, built in the open</MonoLabel>
+        <MonoLabel as="div" size="sm" track="label" class="on-grid"
+          >Robotics, built in the open</MonoLabel
+        >
 
         <h1 class="on-grid">We ship<br />robots in<br />the open.</h1>
 
@@ -75,7 +77,7 @@ const schoolCount = new Set(partners.map((p) => p.data.school)).size;
           <a href="/docs">Read the guides</a>
         </div>
 
-        <MonoLabel as="div" size="sm" track="wide" class="stats">
+        <MonoLabel as="div" size="sm" track="wide" class="stats on-grid">
           <span><strong>Est.</strong> {SITE.established}</span>
           <span
             ><strong>{schoolCount}</strong> schools · <strong>{partners.length}</strong> clubs</span

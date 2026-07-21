@@ -167,8 +167,9 @@ const { width = 'measure', class: className } = Astro.props;
    * Baseline correction for generated markdown.
    *
    * Authors write plain .md, so there is no markup to hang the .on-grid
-   * utility off — the same maths is applied by selector instead. Kept
-   * last so it wins over the `margin-bottom: 0` on headings above.
+   * utility off — the same maths is applied by selector instead. Uses a
+   * transform for the same reason .on-grid does (see global.css): it moves
+   * only the text and never perturbs layout.
    *
    * `pre` and `table` are deliberately excluded: both set their own
    * internal rhythm and are already marked sub-grid.
@@ -177,8 +178,7 @@ const { width = 'measure', class: className } = Astro.props;
     --_baseline: calc(var(--lh-grid) / 2 + var(--bl-k) * 1em);
     --_shift: calc(round(up, var(--_baseline), var(--u)) - var(--_baseline));
 
-    padding-top: var(--_shift);
-    margin-bottom: calc(-1 * var(--_shift));
+    transform: translateY(var(--_shift));
   }
 
   /* Justified setting suits the document metaphor, but only where there
