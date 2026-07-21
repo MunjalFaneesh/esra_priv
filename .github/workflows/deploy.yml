@@ -90,9 +90,12 @@ jobs:
           pnpm check:contrast
           pnpm check:grid
 
+      # Installed with npm, not `pnpm add -g`: pnpm's global bin directory is
+      # not on PATH on GitHub runners, so a pnpm global install succeeds then
+      # can't be invoked. npm's global bin is on PATH via setup-node.
       - name: Install Vercel CLI
         if: env.skip != 'true'
-        run: pnpm add -g vercel@latest
+        run: npm install -g vercel@latest
 
       - name: Pull Vercel environment
         if: env.skip != 'true'
