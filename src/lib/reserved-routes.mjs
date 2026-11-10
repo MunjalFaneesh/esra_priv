@@ -17,6 +17,7 @@ export const RESERVED_ROUTES = new Set([
   // endpoints and generated output
   'rss.xml',
   'feed-media',
+  'logos',
   'og',
   'api',
   '_astro',

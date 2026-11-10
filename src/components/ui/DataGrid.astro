@@ -3,11 +3,11 @@
  * A ruled grid of cells — the workhorse for repos, partners, gallery
  * tiles, and spec tables.
  *
- * The mockups drew these with per-cell border-right/border-bottom plus a
- * border-top/left on the container, which double-rules whenever a row is
- * short and breaks when columns reflow. This instead lets the container's
- * background show through a 2px gap, so every rule is exactly one rule
- * wide at any column count, with no per-cell bookkeeping.
+ * Each cell draws its own hairline as a 1px box-shadow spreading into a
+ * 1px gap, so neighbouring cells share one rule at any column count with
+ * no per-cell border bookkeeping. Unlike the earlier approach (painting
+ * the container in the rule colour and letting it show through the gap),
+ * a short last row leaves clean sheet behind it rather than a grey block.
  */
 interface Props {
   /** Fixed column count, or `auto` to fit by min width. */
@@ -32,13 +32,14 @@ const template =
     display: grid;
     grid-template-columns: var(--cols);
     gap: var(--rule-width);
-    background: var(--rule);
-    border: var(--rule-width) solid var(--rule);
+    /* Room for the outer cells' shadow to show. */
+    padding: var(--rule-width);
   }
 
   /* Cells opt in by class so arbitrary children still work. */
   .data-grid > :global(*) {
     background: var(--sheet);
+    box-shadow: 0 0 0 var(--rule-width) var(--rule-solid);
     min-width: 0;
   }
 

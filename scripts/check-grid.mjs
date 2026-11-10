@@ -33,6 +33,12 @@ import { inflateSync } from 'node:zlib';
 
 const UNIT = 24;
 const FONT = 'node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff';
+// Running text is set in Plex Sans. The .on-grid correction uses one
+// constant for every element, so the sans face must measure the same.
+const COMPANION_FONTS = [
+  'node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff',
+  'node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-600-normal.woff',
+];
 
 const problems = [];
 const fail = (file, line, what, why, fix) => problems.push({ file, line, what, why, fix });
@@ -89,6 +95,19 @@ if (!declared) {
     'text baselines will sit off the grid by up to a third of a cell',
     `set:  --bl-k: ${metrics.k};`
   );
+}
+
+for (const path of COMPANION_FONTS) {
+  const m = readFontMetrics(await readFile(path));
+  if (Math.abs(m.k - metrics.k) > 0.0005) {
+    fail(
+      path,
+      0,
+      `companion face measures --bl-k ${m.k.toFixed(4)}, Plex Mono ${metrics.k.toFixed(4)}`,
+      'sans text would land off the grid with the shared baseline correction',
+      'use a face with matching hhea metrics, or give it its own correction constant'
+    );
+  }
 }
 
 // ---------------------------------------------------------------------

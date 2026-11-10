@@ -55,7 +55,7 @@ export const ESRA: Org = {
   name: 'ESRA',
   fullName: 'Experimental Student Robotics Association',
   blurb:
-    'A student-run consortium building fully open-source legged robots — actuators, firmware, and field guides.',
+    'A national nonprofit connecting university robotics teams to build humanoids, quadrupeds, and manipulators together — in the open.',
   formerly: 'CCBR',
   youtubeHandle: 'CCBRRobotics',
   links: [

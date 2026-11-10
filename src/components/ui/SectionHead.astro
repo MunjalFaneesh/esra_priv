@@ -1,15 +1,17 @@
 ---
 /**
- * Section heading row: a monospace kicker on the left, optional aside on
- * the right (a count, a link, a revision marker).
+ * Section heading row, lettered like a drawing's sheet label: an optional
+ * sheet number, the section name in tracked capitals, a hairline running
+ * out to the right, and an optional aside at its end (a count, a link).
  *
- * The kicker is a real heading element so the page keeps a correct
- * document outline — it only *looks* like a label.
+ * The heading is a real heading element so the outline stays correct.
  */
 import MonoLabel from './MonoLabel.astro';
 
 interface Props {
   title: string;
+  /** Sheet number, e.g. "01". */
+  index?: string;
   /** Heading level. Pick to keep the outline sequential, not for size. */
   as?: 'h2' | 'h3';
   /** Plain-text aside. For links or markup, use the `aside` slot. */
@@ -17,12 +19,16 @@ interface Props {
   class?: string;
 }
 
-const { title, as: Tag = 'h2', aside, class: className } = Astro.props;
+const { title, index, as: Tag = 'h2', aside, class: className } = Astro.props;
 const hasAsideSlot = Astro.slots.has('aside');
 ---
 
 <div class:list={['section-head', className]}>
-  <Tag class="title on-grid">{title}</Tag>
+  <Tag class="title">
+    {index && <span class="index">{index}</span>}
+    <span>{title}</span>
+  </Tag>
+  <span class="leader" aria-hidden="true"></span>
   {
     (aside || hasAsideSlot) && (
       <div class="aside">
@@ -35,38 +41,53 @@ const hasAsideSlot = Astro.slots.has('aside');
 <style>
   .section-head {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--u);
-    /* Exactly one cell. Baseline-aligning a 12px title with a 10px aside
-       otherwise expands the row to ~26px, which pushes the content below
-       it 2px off the section grid. Both children have a 24px line box, so
-       they fit; the tiny baseline-alignment overflow is invisible. */
-    height: var(--u);
-    margin-bottom: var(--u);
+    align-items: center;
+    gap: var(--u-half);
+    min-height: var(--u);
+    margin-bottom: var(--u-2);
   }
 
   .title {
+    display: flex;
+    align-items: center;
+    gap: var(--u-half);
     margin: 0;
     font-family: var(--font-mono);
     font-size: var(--t-mono);
-    font-weight: var(--w-medium);
+    font-weight: var(--w-semibold);
+    line-height: var(--lh-grid);
     letter-spacing: var(--track-mono-label);
     text-transform: uppercase;
-    color: var(--ink-muted);
-    line-height: var(--lh-grid);
+    color: var(--ink-strong);
+  }
+
+  .index {
+    color: var(--accent-ink);
+  }
+
+  .index::after {
+    content: '/';
+    margin-left: var(--u-half);
+    color: var(--ink-faint);
+  }
+
+  /* The hairline that carries the eye from the label to the aside. */
+  .leader {
+    flex: 1;
+    min-width: var(--u);
+    height: var(--rule-width);
+    background: var(--rule);
   }
 
   .aside {
     flex: none;
+    font-size: var(--t-sm);
   }
 
   @media (max-width: 560px) {
     .section-head {
-      flex-direction: column;
-      gap: var(--u-quarter);
-      /* Two stacked rows now — let it take the height it needs. */
-      height: auto;
+      flex-wrap: wrap;
+      margin-bottom: var(--u);
     }
   }
 </style>

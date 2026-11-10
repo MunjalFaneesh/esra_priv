@@ -205,8 +205,17 @@ const partners = defineCollection({
     school: z.string(),
     location: z.string().optional(),
     url: z.string(),
-    /** Path under src/assets/logos. Absent for clubs with no logo yet. */
+    /** What the partner is. Shown as a label beside its name. */
+    kind: z.enum(['club', 'school', 'company', 'organization']).default('club'),
+    /**
+     * File name under src/assets/logos (PNG, SVG, JPG or WebP, any
+     * colours). It is redrawn in the site's own ink at build time — see
+     * src/lib/logo-mark.ts. Absent for partners with no logo yet, which
+     * get a lettered mark instead.
+     */
     logo: z.string().optional(),
+    /** Swap ink and knockout if the redrawn logo comes out as a negative. */
+    logoInvert: z.boolean().default(false),
   }),
 });
 

@@ -1,31 +1,45 @@
 ---
 /**
- * Sheet footer — wordmark, blurb, and link columns.
+ * Site footer.
  *
- * The Channels column is generated from the org registry, so every social
- * account either appears here automatically or does not exist. Orgs with
- * partial coverage simply render fewer links.
+ * A closing line with the one call to action, a block of numbered notes
+ * (true statements about the organisation, in the voice of a drawing's
+ * notes column), then the link columns. Channel columns come
+ * from the org registry, so an account appears here or does not exist.
  */
 import Logo from '../ui/Logo.astro';
 import MonoLabel from '../ui/MonoLabel.astro';
-import { NAV, SITE } from '../../data/site';
+import { CONTACTS, NAV, SITE } from '../../data/site';
 import { ORGS, PLATFORM_META } from '../../data/orgs';
 
 const siteLinks = NAV.filter((n) => !n.mono);
+const general = CONTACTS[0];
+
+const notes = [
+  `Designs released under ${SITE.license}.`,
+  'Built by students, across campuses, in the open.',
+  `${SITE.incorporated}.`,
+  `Questions, partnerships, press: ${general.address}`,
+];
 ---
 
 <footer class="footer">
+  <div class="closer">
+    <p class="statement">Robots no single campus could build alone.</p>
+    <a class="btn" href="/#join">Get involved <span class="arrow">&#8594;</span></a>
+  </div>
+
   <div class="cols">
     <div class="about">
       <Logo height={22} label={null} />
-      <p>{SITE.description}</p>
-      <MonoLabel size="micro" track="wide">
-        Est. {SITE.established} &middot; {SITE.license}
-      </MonoLabel>
+      <MonoLabel as="div" size="micro" track="widest" class="notes-head">Notes</MonoLabel>
+      <ol class="notes">
+        {notes.map((n) => <li>{n}</li>)}
+      </ol>
     </div>
 
     <nav class="col" aria-label="Site">
-      <MonoLabel as="div" size="micro" class="col-head">Site</MonoLabel>
+      <div class="col-head">Site</div>
       <ul>
         {
           siteLinks.map(({ label, href }) => (
@@ -38,7 +52,7 @@ const siteLinks = NAV.filter((n) => !n.mono);
     </nav>
 
     <nav class="col" aria-label="Source">
-      <MonoLabel as="div" size="micro" class="col-head">Source</MonoLabel>
+      <div class="col-head">Source</div>
       <ul>
         <li><a href={SITE.orgUrl} rel="noopener">GitHub &#8599;</a></li>
         <li><a href={SITE.repoUrl} rel="noopener">This site &#8599;</a></li>
@@ -51,9 +65,7 @@ const siteLinks = NAV.filter((n) => !n.mono);
     {
       ORGS.map((org) => (
         <nav class="col" aria-label={`${org.name} channels`}>
-          <MonoLabel as="div" size="micro" class="col-head">
-            {org.name}
-          </MonoLabel>
+          <div class="col-head">{org.name}</div>
           <ul>
             {org.links
               .filter((l) => l.platform !== 'website' || org.id !== 'esra')
@@ -73,26 +85,66 @@ const siteLinks = NAV.filter((n) => !n.mono);
 
 <style>
   .footer {
-    padding: var(--u-2);
+    padding-block: var(--u-4) var(--u-3);
+    padding-inline: max(var(--gutter), calc((100% - var(--content-max, var(--sheet-max))) / 2));
+    border-top: var(--rule-width) solid var(--rule-strong);
+    background: var(--veil); /* darken the drafting grid, never repaint it */
+  }
+
+  .closer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--u-2);
+    flex-wrap: wrap;
+    padding-bottom: var(--u-3);
+    margin-bottom: var(--u-3);
+    border-bottom: var(--rule-width) solid var(--rule);
+  }
+
+  .statement {
+    margin: 0;
+    max-width: 720px;
+    font-family: var(--font-display);
+    font-size: var(--t-h2);
+    font-weight: var(--w-semibold);
+    line-height: var(--lh-h1);
+    letter-spacing: var(--track-tight);
+    color: var(--ink-strong);
   }
 
   .cols {
     display: grid;
-    grid-template-columns: 1.6fr repeat(4, 1fr);
+    grid-template-columns: 1.8fr repeat(4, 1fr);
     gap: var(--u-2);
   }
 
-  .about p {
-    margin: var(--u-half) 0 var(--u-half);
-    max-width: 288px;
+  .about :global(.notes-head) {
+    display: block;
+    margin-top: var(--u);
+  }
+
+  .notes {
+    margin: var(--u-quarter) 0 0;
+    padding-left: var(--u);
     font-size: var(--t-sm);
     line-height: var(--lh-grid);
     color: var(--ink-muted);
   }
 
-  .col :global(.col-head) {
-    display: block;
+  .notes li::marker {
+    color: var(--accent-ink);
+  }
+
+  .col-head {
     margin-bottom: var(--u-half);
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+    font-weight: var(--w-semibold);
+    line-height: var(--lh-grid);
+    letter-spacing: var(--track-mono-label);
+    text-transform: uppercase;
+    color: var(--accent-ink);
   }
 
   .col ul {
@@ -105,7 +157,16 @@ const siteLinks = NAV.filter((n) => !n.mono);
     font-size: var(--t-sm);
   }
 
-  @media (max-width: 940px) {
+  .col a {
+    text-decoration: none;
+    color: var(--ink-body);
+  }
+
+  .col a:hover {
+    color: var(--accent-ink);
+  }
+
+  @media (max-width: 980px) {
     .cols {
       grid-template-columns: 1fr 1fr 1fr;
       gap: var(--u);
@@ -117,7 +178,7 @@ const siteLinks = NAV.filter((n) => !n.mono);
 
   @media (max-width: 560px) {
     .footer {
-      padding: var(--u-2) var(--u-half);
+      padding-block: var(--u-3) var(--u-2);
     }
     .cols {
       grid-template-columns: 1fr 1fr;

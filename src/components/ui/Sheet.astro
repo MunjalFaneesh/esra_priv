@@ -1,75 +1,38 @@
 ---
 /**
- * The document sheet — the bordered surface every page sits on, floating
- * over the outer field. Owns the optional baseline-grid overlay.
+ * The drawing sheet. Every page sits on it.
  *
- * Sections placed inside are separated by their own rules; the sheet only
- * provides the outer edge and the grid.
+ * It sets the content measure that each full-bleed band centres on
+ * (--content-max) and nothing else: the drafting grid behind the page is
+ * painted once on <body> (see global.css), so the sheet itself carries no
+ * decoration.
  */
 interface Props {
-  /** Draw the 24px baseline grid behind the content. */
+  /** Kept for API compatibility; the drafting grid is always on. */
   grid?: boolean;
-  /** Widen past the standard 1056px measure (used by the gallery). */
+  /** Widen the content measure (used by the gallery). */
   wide?: boolean;
   class?: string;
 }
 
-const { grid = true, wide = false, class: className } = Astro.props;
+const { wide = false, class: className } = Astro.props;
 ---
 
-<div class="field">
-  <div class:list={['sheet', { wide }, className]}>
-    <div class:list={['sheet-content', { 'grid-on': grid }]}>
-      <slot />
-    </div>
-  </div>
+<div class:list={['sheet', { wide }, className]}>
+  <slot />
 </div>
 
 <style>
-  .field {
-    display: flex;
-    justify-content: center;
-    min-height: 100vh;
-    width: 100%;
-    background: var(--paper);
-    color: var(--ink-strong);
-    padding: var(--u-2) var(--u);
-  }
-
   .sheet {
+    --content-max: var(--sheet-max);
+
     position: relative;
-    width: 100%;
-    max-width: var(--sheet-max);
-    background: var(--sheet);
-    border: var(--rule-width) solid var(--rule-strong);
-    box-shadow: var(--shadow-sheet);
+    min-height: 100vh;
+    color: var(--ink-strong);
+    overflow-x: clip;
   }
 
   .sheet.wide {
-    max-width: 1400px;
-  }
-
-  /*
-   * The baseline grid is drawn per section, not here — see `.grid-on
-   * .section` in global.css for why. The header (outside any section)
-   * intentionally has no grid behind it.
-   */
-  .sheet-content {
-    position: relative;
-    z-index: var(--z-content);
-  }
-
-  /* On narrow screens the sheet metaphor costs more than it gives:
-     drop the outer margin so content keeps its full width. */
-  @media (max-width: 640px) {
-    .field {
-      padding: 0;
-    }
-
-    .sheet {
-      border-left: 0;
-      border-right: 0;
-      box-shadow: none;
-    }
+    --content-max: 1400px;
   }
 </style>

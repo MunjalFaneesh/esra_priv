@@ -18,9 +18,9 @@ export const SITE = {
   description: ESRA.blurb!,
   /** Used in the colophon and footer. */
   established: 'ICRA 2025',
+  /** Legal status, from the incorporation record. */
+  incorporated: 'New Jersey nonprofit, June 2026',
   license: 'MIT + CERN-OHL-S',
-  /** FED-STD-595C reference for the background, kept as a design footnote. */
-  colorRef: 'FED-STD-595C 36495',
   repo: 'esrabot/web',
   repoUrl: 'https://github.com/esrabot/web',
   orgUrl: 'https://github.com/esrabot',

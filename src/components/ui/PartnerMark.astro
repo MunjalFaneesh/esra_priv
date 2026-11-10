@@ -1,0 +1,96 @@
+---
+/**
+ * A partner's logo, printed in the site's ink.
+ *
+ * The logo is not shown as an image. Its shape is used as a CSS mask over
+ * a block of `currentColor`, so every partner's mark takes the colour of
+ * the text around it — and follows hover states and themes for free. The
+ * mask itself is generated at build time from the partner's own file (see
+ * src/lib/logo-mark.ts).
+ *
+ * A partner with no logo file gets a lettered mark — its abbreviation in
+ * the display face — sized to sit in the same row as the drawn ones.
+ */
+import type { CollectionEntry } from 'astro:content';
+
+import { getPartnerMark } from '../../lib/logo-mark';
+
+interface Props {
+  partner: CollectionEntry<'partners'>;
+  /** Height of the mark, in px. */
+  height?: number;
+  /** Widest a mark may run, in px. Wide wordmarks shrink to fit. */
+  maxWidth?: number;
+  /** Decorative: the partner's name is already in text beside the mark. */
+  decorative?: boolean;
+  class?: string;
+}
+
+const { partner, height = 72, maxWidth = height * 2.5, decorative = false, class: className } =
+  Astro.props;
+const { name, abbr, logo, logoInvert } = partner.data;
+
+const mark = logo ? await getPartnerMark(logo, { invert: logoInvert }) : null;
+
+// Fit the mark inside height x maxWidth, keeping its proportions.
+const scale = mark ? Math.min(height / mark.height, maxWidth / mark.width) : 1;
+const w = mark ? Math.round(mark.width * scale) : 0;
+const h = mark ? Math.round(mark.height * scale) : height;
+
+// Lettered fallback: the abbreviation, or the capitals of the name.
+const letters = (abbr ?? name.replace(/[^A-Z]/g, '')).slice(0, 5) || name.slice(0, 2).toUpperCase();
+
+const a11y = decorative
+  ? ({ 'aria-hidden': 'true' } as const)
+  : ({ role: 'img', 'aria-label': `${name} logo` } as const);
+---
+
+{
+  mark ? (
+    <span
+      class:list={['mark', className]}
+      style={`--mark: url('/logos/${partner.id}.png'); width: ${w}px; height: ${h}px;`}
+      {...a11y}
+    />
+  ) : (
+    <span
+      class:list={['mark', 'lettered', className]}
+      style={`height: ${height}px; font-size: ${Math.round(height * 0.5)}px;`}
+      {...a11y}
+    >
+      {letters}
+    </span>
+  )
+}
+
+<style>
+  .mark {
+    display: block;
+    flex: none;
+    max-width: 100%;
+    background: currentColor;
+    -webkit-mask: var(--mark) center / contain no-repeat;
+    mask: var(--mark) center / contain no-repeat;
+  }
+
+  .mark.lettered {
+    display: flex;
+    align-items: center;
+    background: none;
+    -webkit-mask: none;
+    mask: none;
+    font-family: var(--font-display);
+    font-weight: var(--w-bold);
+    line-height: 1; /* sub-grid: a lettered logo, sized by its box not the text grid */
+    letter-spacing: var(--track-tight);
+    white-space: nowrap;
+  }
+
+  /* Forced colours drop backgrounds, which would erase a masked mark. */
+  @media (forced-colors: active) {
+    .mark:not(.lettered) {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+  }
+</style>

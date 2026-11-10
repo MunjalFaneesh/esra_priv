@@ -1,8 +1,8 @@
 ---
 /**
  * A plated figure: bordered well, optional corner annotations, and the
- * halftone/scanline treatment that gives imagery its printed-document
- * character.
+ * duotone and dot-screen treatment that prints a photo in the sheet's own
+ * blue-black.
  *
  * Images go through astro:assets, so the multi-megabyte source photos
  * migrated from the old site ship as sized, modern-format derivatives.
@@ -20,7 +20,7 @@ interface Props {
   /** Caption below the plate. Also accepts the `caption` slot. */
   caption?: string;
   ratio?: string;
-  /** Halftone dot + scanline overlay. Off for diagrams and logos. */
+  /** Halftone dot overlay. Off for diagrams and logos. */
   dither?: boolean;
   /** Desaturate to match the printed look. */
   mono?: boolean;
@@ -82,10 +82,7 @@ const hasCaption = caption || Astro.slots.has('caption');
 
       {
         dither && (
-          <>
-            <div class="dither" aria-hidden="true" />
-            <div class="scanlines" aria-hidden="true" />
-          </>
+<div class="dither" aria-hidden="true" />
         )
       }
     </div>
@@ -132,7 +129,8 @@ const hasCaption = caption || Astro.slots.has('caption');
   .well {
     position: relative;
     overflow: hidden;
-    background: var(--sheet-sunk);
+    background: var(--sheet);
+    isolation: isolate;
   }
 
   .media {
@@ -141,8 +139,11 @@ const hasCaption = caption || Astro.slots.has('caption');
     display: block;
   }
 
+  /* Duotone: a greyscale photo screened over the sheet, so shadows take
+     its blue-black and highlights print as warm white. */
   .media.mono {
-    filter: grayscale(1) contrast(1.12) brightness(1.06);
+    filter: grayscale(1) contrast(1.2) brightness(0.95);
+    mix-blend-mode: screen;
   }
 
   /* Halftone dot screen */
@@ -154,16 +155,6 @@ const hasCaption = caption || Astro.slots.has('caption');
     background-size: var(--dither-size) var(--dither-size);
     mix-blend-mode: multiply;
     opacity: 0.42;
-  }
-
-  /* CRT scanlines */
-  .scanlines {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: repeating-linear-gradient(var(--scanline) 0 1px, transparent 1px 3px);
-    mix-blend-mode: multiply;
-    opacity: 0.5;
   }
 
   .caption {
@@ -181,8 +172,7 @@ const hasCaption = caption || Astro.slots.has('caption');
 
   /* The treatment is decorative; drop it when the OS asks for plain output. */
   @media (forced-colors: active) {
-    .dither,
-    .scanlines {
+    .dither {
       display: none;
     }
     .media.mono {

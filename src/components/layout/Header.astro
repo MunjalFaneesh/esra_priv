@@ -1,10 +1,11 @@
 ---
 /**
- * Sheet header — wordmark, expanded org name, primary nav.
+ * Site header.
  *
- * The nav is a plain list of links with no JS. Below the breakpoint it
- * becomes a horizontally scrollable rail rather than a hamburger menu:
- * six items don't justify hiding navigation behind a toggle.
+ * Wordmark, the primary nav lettered in small capitals, and one call to
+ * action. Sticky on a translucent sheet with a backdrop blur. No JS:
+ * below the breakpoint the nav becomes a horizontally scrollable rail
+ * rather than a hamburger.
  */
 import Logo from '../ui/Logo.astro';
 import { NAV, SITE } from '../../data/site';
@@ -22,20 +23,17 @@ const isActive = (href: string) =>
 
 <header class="header">
   <a href="/" class="brand" aria-label={`${SITE.name} home`}>
-    <Logo height={24} label={null} />
-    <span class="expanded" aria-hidden="true">
-      Experimental Student<br />Robotics Association
-    </span>
+    <Logo height={22} label={null} />
   </a>
 
   <nav class="nav" aria-label="Primary">
     <ul>
       {
-        NAV.map(({ label, href, mono }) => (
+        NAV.map(({ label, href }) => (
           <li>
             <a
               href={href}
-              class:list={['nav-link', { mono, active: isActive(href) }]}
+              class:list={['nav-link', { active: isActive(href) }]}
               aria-current={isActive(href) ? 'page' : undefined}
             >
               {label}
@@ -45,17 +43,31 @@ const isActive = (href: string) =>
       }
     </ul>
   </nav>
+
+  <a href="/#join" class="btn sm cta">Get involved</a>
 </header>
 
 <style>
   .header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: var(--u);
     min-height: var(--u-3);
-    padding: var(--u-half) var(--u);
+    padding-block: var(--u-half);
+    padding-inline: max(var(--gutter), calc((100% - var(--content-max, var(--sheet-max))) / 2));
     border-bottom: var(--rule-width) solid var(--rule);
+    background: var(--sheet-glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  @supports not (backdrop-filter: blur(1px)) {
+    .header {
+      background: var(--sheet);
+    }
   }
 
   .brand {
@@ -67,15 +79,8 @@ const isActive = (href: string) =>
     flex: none;
   }
 
-  .expanded {
-    font-family: var(--font-mono);
-    font-size: var(--t-micro);
-    line-height: 12px; /* sub-grid: two 12px lines sum to one 24px cell */
-    letter-spacing: var(--track-widest);
-    text-transform: uppercase;
-    color: var(--ink-muted);
-    border-left: var(--rule-width) solid var(--rule);
-    padding-left: var(--u-half);
+  .nav {
+    margin-left: auto;
   }
 
   .nav ul {
@@ -88,48 +93,64 @@ const isActive = (href: string) =>
   }
 
   .nav-link {
-    font-size: var(--t-sm);
-    color: var(--ink-body);
-    white-space: nowrap;
-  }
-
-  .nav-link.active {
-    color: var(--ink-strong);
-    font-weight: var(--w-semibold);
-    text-decoration: none;
-  }
-
-  .nav-link.mono {
+    position: relative;
     font-family: var(--font-mono);
-    font-size: var(--t-mono-sm);
+    font-size: var(--t-mono);
+    font-weight: var(--w-medium);
+    letter-spacing: var(--track-widest);
+    text-transform: uppercase;
     color: var(--ink-muted);
+    white-space: nowrap;
     text-decoration: none;
-    letter-spacing: var(--track-wide);
   }
 
-  @media (max-width: 900px) {
-    .expanded {
-      display: none;
-    }
+  .nav-link:hover {
+    color: var(--ink-strong);
+  }
+
+  /* Active page: a beige rule under the label. */
+  .nav-link.active {
+    color: var(--accent-ink);
+  }
+
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: var(--rule-width);
+    background: var(--accent);
+  }
+
+  .cta {
+    flex: none;
+  }
+
+  @media (max-width: 1060px) {
     .nav ul {
       gap: var(--u-half);
     }
   }
 
-  @media (max-width: 720px) {
+  @media (max-width: 860px) {
     .header {
-      flex-direction: column;
-      align-items: stretch;
+      flex-wrap: wrap;
       gap: var(--u-half);
-      padding: var(--u-half);
     }
 
-    /* Scrollable rail — keeps every destination one tap away. */
+    .cta {
+      margin-left: auto;
+    }
+
     .nav {
+      order: 3;
+      flex-basis: 100%;
+      margin-left: calc(-1 * var(--gutter));
+      margin-right: calc(-1 * var(--gutter));
+      padding: 0 var(--gutter);
       overflow-x: auto;
       scrollbar-width: none;
-      margin: 0 calc(-1 * var(--u-half));
-      padding: 0 var(--u-half);
     }
 
     .nav::-webkit-scrollbar {
@@ -138,7 +159,11 @@ const isActive = (href: string) =>
 
     .nav ul {
       gap: var(--u);
-      padding-bottom: 2px;
+      padding-bottom: var(--u-half);
+    }
+
+    .nav-link.active::after {
+      bottom: -6px;
     }
   }
 </style>

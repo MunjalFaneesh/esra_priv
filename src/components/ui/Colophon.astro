@@ -28,8 +28,7 @@ const build = buildInfo();
     {
       foot ? (
         <>
-          &copy; {new Date().getFullYear()} {SITE.name} &middot; esra.bot &middot; bg{' '}
-          {SITE.colorRef}
+          &copy; {new Date().getFullYear()} {SITE.name} &middot; esra.bot &middot; {SITE.license}
         </>
       ) : (
         <>
@@ -71,7 +70,9 @@ const build = buildInfo();
     align-items: center;
     gap: var(--u-half);
     min-height: var(--u-2);
-    padding: var(--u-quarter) var(--u);
+    padding-block: var(--u-quarter);
+    /* Centre on the content measure while the band itself runs full-bleed. */
+    padding-inline: max(var(--gutter), calc((100% - var(--content-max, var(--sheet-max))) / 2));
     border-bottom: var(--rule-width) solid var(--rule);
   }
 
@@ -96,7 +97,7 @@ const build = buildInfo();
       flex-direction: column;
       align-items: flex-start;
       gap: 2px;
-      padding: var(--u-half) var(--u-half);
+      padding-block: var(--u-half);
     }
 
     .colophon :global(.right) {

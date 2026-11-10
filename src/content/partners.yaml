@@ -1,13 +1,19 @@
-# Affiliated clubs and schools.
+# Partners: the clubs, schools, companies and organizations ESRA works
+# with. Each one appears on the home page's partner wall and on /members.
+#
+#   kind   club (default) | school | company | organization
+#   logo   file name under src/assets/logos — any format, any colours.
+#          The site redraws it in its own ink, so logos never clash with
+#          the page or each other. If one comes out as a negative, add
+#          `logoInvert: true`.
 #
 # Migrated from the old site's content/team/partners.yaml, with the CRT
 # URL upgraded to https (it was http) and the Rutgers Dynamics entry
 # pointed at the club's real site rather than its LinkedIn page.
 #
-# `logo` is a path under src/assets/logos. RMC and UC Berkeley have no
-# logo asset yet — the old site pointed both at ESRA's own mark, which
-# misrepresented them, so the field is simply omitted and the card falls
-# back to a typographic treatment.
+# RMC and UC Berkeley have no logo asset yet — the old site pointed both
+# at ESRA's own mark, which misrepresented them, so the field is simply
+# omitted and the wall shows a lettered mark until a file is added.
 
 - id: crt
   name: Caltech Robotics Team
@@ -41,6 +47,7 @@
 
 - id: berkeley
   name: UC Berkeley
+  kind: school
   school: University of California, Berkeley
   location: Berkeley, CA
   url: https://www.berkeley.edu/

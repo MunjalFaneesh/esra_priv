@@ -1,58 +1,69 @@
 ---
 /**
- * A horizontal band of the sheet, separated from the next by a rule.
- * Pairs with SectionHead for the standard kicker + optional aside row.
+ * A full-bleed horizontal band, separated from the next by a hairline.
+ * The band's background runs edge to edge; its content centres at the
+ * sheet's --content-max. Pairs with SectionHead for the kicker row.
  */
 interface Props {
   id?: string;
   /** Vertical padding. `tight` for dense listings, `hero` for openers. */
   pad?: 'tight' | 'normal' | 'hero';
-  /** Suppress the closing rule (for the last band before the colophon). */
+  /** `panel` renders the band on the dark instrument-panel surface. */
+  tone?: 'sheet' | 'panel';
+  /** Suppress the closing rule (for the last band before the footer). */
   last?: boolean;
   class?: string;
 }
 
-const { id, pad = 'normal', last = false, class: className } = Astro.props;
+const { id, pad = 'normal', tone = 'sheet', last = false, class: className } = Astro.props;
 ---
 
-<section id={id} class:list={['section', `pad-${pad}`, { last }, className]}>
-  <slot />
+<section
+  id={id}
+  class:list={['section', `pad-${pad}`, { 'tone-panel': tone === 'panel', last }, className]}
+>
+  <div class="inner">
+    <slot />
+  </div>
 </section>
 
 <style>
   .section {
     border-bottom: var(--rule-width) solid var(--rule);
+    scroll-margin-top: var(--u-3);
   }
 
   .section.last {
     border-bottom: 0;
   }
 
+  .inner {
+    max-width: calc(var(--content-max, var(--sheet-max)) + 2 * var(--gutter));
+    margin: 0 auto;
+    padding-inline: var(--gutter);
+  }
+
   .pad-tight {
-    padding: var(--u) var(--u-2);
+    padding-block: var(--u);
   }
   .pad-normal {
-    padding: var(--u-3) var(--u-2);
+    padding-block: var(--u-4);
   }
   .pad-hero {
-    padding: var(--u-3) var(--u-2) var(--u-2);
+    padding-block: var(--u-4) var(--u-3);
   }
 
   @media (max-width: 860px) {
-    .pad-tight {
-      padding: var(--u) var(--u);
-    }
     .pad-normal,
     .pad-hero {
-      padding: var(--u-2) var(--u);
+      padding-block: var(--u-3);
     }
   }
 
   @media (max-width: 480px) {
-    .pad-tight,
     .pad-normal,
     .pad-hero {
-      padding: var(--u-2) var(--u-half);
+      padding-block: var(--u-2);
     }
   }
 </style>

@@ -104,6 +104,15 @@ const REQUIRED = [
   { fg: '--ink-body', bg: '--paper', min: 4.5, note: 'body on the outer field' },
   { fg: '--ink-muted', bg: '--paper', min: 4.5, note: 'labels on the outer field' },
   { fg: '--ink-inverse', bg: '--ink', min: 4.5, note: 'inverted text (buttons)' },
+  { fg: '--ink-inverse', bg: '--pad', min: 4.5, note: 'text on pad buttons' },
+  { fg: '--accent-ink', bg: '--paper', min: 4.5, note: 'accent text in raised cells' },
+  { fg: '--phosphor', bg: '--terminal', min: 4.5, note: 'terminal text' },
+  { fg: '--panel-ink', bg: '--panel', min: 4.5, note: 'headings on the dark panel' },
+  { fg: '--panel-body', bg: '--panel', min: 4.5, note: 'body on the dark panel' },
+  { fg: '--panel-muted', bg: '--panel', min: 4.5, note: 'labels on the dark panel' },
+  { fg: '--panel-accent', bg: '--panel', min: 4.5, note: 'accent text on the dark panel' },
+  { fg: '--panel-muted', bg: '--panel-raised', min: 4.5, note: 'labels in panel cells' },
+  { fg: '--panel-accent', bg: '--panel-raised', min: 4.5, note: 'accent in panel cells' },
 ];
 
 let failed = 0;

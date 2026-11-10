@@ -94,6 +94,12 @@ const structuredData = {
     />
 
     <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+
+    <!-- Arms the scroll-reveal styles. Set before first paint so nothing
+         flashes; without JS, [data-reveal] content is simply visible. -->
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
   </head>
 
   <body>
@@ -110,5 +116,35 @@ const structuredData = {
       <Footer />
       <Colophon path={sourcePath} foot />
     </Sheet>
+
+    <!-- Scroll reveal. Inline and dependency-free; if anything here fails,
+         the catch reveals everything rather than leaving content hidden. -->
+    <script is:inline>
+      (function () {
+        var els = document.querySelectorAll('[data-reveal]');
+        var show = function (el) {
+          el.classList.add('revealed');
+        };
+        try {
+          if (!('IntersectionObserver' in window)) throw 0;
+          var io = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (e) {
+                if (e.isIntersecting) {
+                  show(e.target);
+                  io.unobserve(e.target);
+                }
+              });
+            },
+            { rootMargin: '0px 0px -6% 0px' }
+          );
+          els.forEach(function (el) {
+            io.observe(el);
+          });
+        } catch (_) {
+          els.forEach(show);
+        }
+      })();
+    </script>
   </body>
 </html>
