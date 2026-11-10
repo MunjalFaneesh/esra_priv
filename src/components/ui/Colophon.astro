@@ -72,13 +72,16 @@ const build = buildInfo();
     min-height: var(--u-2);
     padding-block: var(--u-quarter);
     /* Centre on the content measure while the band itself runs full-bleed. */
-    padding-inline: max(var(--gutter), calc((100% - var(--content-max, var(--sheet-max))) / 2));
-    border-bottom: var(--rule-width) solid var(--rule);
+    padding-inline: var(--edge) var(--edge-end);
+    /* The rule sits on the grid line below the band, over the header. */
+    position: relative;
+    z-index: calc(var(--z-sticky) + 1);
+    box-shadow: 0 var(--rule-width) 0 var(--rule);
   }
 
   .colophon.foot {
-    border-bottom: 0;
-    border-top: var(--rule-width) solid var(--rule);
+    z-index: auto;
+    box-shadow: inset 0 var(--rule-width) 0 var(--rule);
   }
 
   .colophon :global(.right) {
@@ -96,7 +99,7 @@ const build = buildInfo();
     .colophon {
       flex-direction: column;
       align-items: flex-start;
-      gap: 2px;
+      gap: 0;
       padding-block: var(--u-half);
     }
 

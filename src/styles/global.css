@@ -4,6 +4,8 @@
  */
 
 /* Self-hosted faces. See tokens.css for which role each one plays. */
+@import '@fontsource/silkscreen/400.css';
+@import '@fontsource/silkscreen/700.css';
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 @import '@fontsource/ibm-plex-mono/600.css';
@@ -38,26 +40,42 @@ html {
  * here: a fine line per 24px cell and a heavier one every five. No
  * section repaints it. A band that needs another tone lays a translucent
  * veil over it (see .tone-panel, the footer), so the grid runs unbroken
- * down the whole page. It is centred, so its lines fall on the edges of
- * the 1200px content measure.
+ * down the whole page.
+ *
+ * The grid and the content share one origin. A line always falls on the
+ * left edge of the content measure: at the gutter on a narrow screen, and
+ * at (width - 1200px) / 2, floored to a whole pixel, on a wide one. That
+ * is the same sum the sheet uses for --edge (see Sheet.astro), so every
+ * column, rule and box edge set in whole cells sits on a drawn line.
+ *
+ * (A background-position percentage resolves against the area minus the
+ * tile, hence the half-tile added back before subtracting the half-measure.)
  */
 body {
+  --_grid-x: max(var(--gutter), round(down, calc(50% + var(--u-half) - var(--sheet-max) / 2), 1px));
+  --_major-x: max(
+    var(--gutter),
+    round(down, calc(50% + var(--grid-major-step) / 2 - var(--sheet-max) / 2), 1px)
+  );
+
   background-color: var(--sheet);
   background-image:
-    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    var(--grid-mark), linear-gradient(var(--grid-major) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
     linear-gradient(var(--grid-minor) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
   background-size:
     var(--grid-major-step) var(--grid-major-step),
     var(--grid-major-step) var(--grid-major-step),
+    var(--grid-major-step) var(--grid-major-step),
     var(--u) var(--u),
     var(--u) var(--u);
   background-position:
-    calc(50% + var(--grid-major-step) / 2) 0,
-    calc(50% + var(--grid-major-step) / 2) 0,
-    calc(50% + var(--u-half)) 0,
-    calc(50% + var(--u-half)) 0;
+    calc(var(--_major-x) - var(--grid-major-step) / 2) calc(var(--grid-major-step) / -2),
+    var(--_major-x) 0,
+    var(--_major-x) 0,
+    var(--_grid-x) 0,
+    var(--_grid-x) 0;
   color: var(--ink-strong);
   font-family: var(--font-mono);
   font-size: var(--t-md);
@@ -142,10 +160,8 @@ a:hover {
   padding: var(--u-half) var(--u);
   background: var(--accent);
   color: var(--ink-inverse);
-  font-family: var(--font-mono);
-  font-size: var(--t-mono);
-  font-weight: var(--w-semibold);
-  letter-spacing: var(--track-widest);
+  font-family: var(--font-pixel);
+  font-size: var(--t-pixel);
   text-transform: uppercase;
   text-decoration: none;
 }
@@ -158,56 +174,133 @@ a:hover {
 /*
  * Buttons.
  * --------
- * Square, one line weight, lettered like a drawing: small tracked mono
- * capitals. The primary is filled beige; the ghost is an outline.
+ * A pad you can press: stepped pixel corners (clip-path), a darker lower
+ * edge for depth, a 2px press on :active, and pixel lettering. The
+ * clip-path would also clip a focus outline, so focus draws an inset ring
+ * instead.
  */
 .btn {
+  --notch: var(--px);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--u-half);
   height: var(--u-2);
-  padding: 0 var(--u);
-  border: var(--rule-width) solid var(--accent);
+  /* Optional width in whole cells, so both edges land on grid lines. */
+  min-width: calc(var(--cells, 0) * var(--u));
+  padding: 0 var(--u) var(--px);
   background: var(--accent);
   color: var(--ink-inverse);
-  font-family: var(--font-mono);
-  font-size: var(--t-mono);
-  font-weight: var(--w-semibold);
+  font-family: var(--font-pixel);
+  font-size: var(--t-pixel);
+  font-weight: var(--w-regular);
   line-height: var(--lh-grid);
-  letter-spacing: var(--track-widest);
   text-transform: uppercase;
   text-decoration: none;
   white-space: nowrap;
+  box-shadow: inset 0 calc(-1 * var(--px)) 0 var(--accent-deep);
+  clip-path: polygon(
+    0 var(--notch),
+    var(--notch) var(--notch),
+    var(--notch) 0,
+    calc(100% - var(--notch)) 0,
+    calc(100% - var(--notch)) var(--notch),
+    100% var(--notch),
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    var(--notch) 100%,
+    var(--notch) calc(100% - var(--notch)),
+    0 calc(100% - var(--notch))
+  );
   transition:
+    transform var(--dur-fast) var(--ease),
     background-color var(--dur) var(--ease),
-    border-color var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
 
 .btn:hover {
-  border-color: var(--ink);
   background: var(--ink);
   color: var(--ink-inverse);
 }
 
-.btn.ghost {
-  border-color: var(--rule-strong);
-  background: transparent;
-  color: var(--ink-strong);
+.btn:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 calc(-1 * var(--px) / 2) 0 var(--accent-deep);
 }
 
-.btn.ghost:hover {
-  border-color: var(--accent);
-  background: var(--accent-wash);
+.btn:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 3px var(--ink-inverse),
+    inset 0 calc(-1 * var(--px)) 0 var(--accent-deep);
+}
+
+/*
+ * Outline variant: the same footprint, unfilled. A single notch would cut
+ * the ring at every corner, so here the notch is a two-step staircase in
+ * art pixels of the ring's width, and the pixel left on the diagonal is
+ * filled in: the outline steps round each corner instead of breaking.
+ */
+.btn.ghost {
+  --ring: var(--ink-muted);
+  --s: 2px; /* the ring, and the step */
+  --corner: linear-gradient(var(--ring), var(--ring));
+  clip-path: polygon(
+    0 var(--notch),
+    var(--s) var(--notch),
+    var(--s) var(--s),
+    var(--notch) var(--s),
+    var(--notch) 0,
+    calc(100% - var(--notch)) 0,
+    calc(100% - var(--notch)) var(--s),
+    calc(100% - var(--s)) var(--s),
+    calc(100% - var(--s)) var(--notch),
+    100% var(--notch),
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--s)) calc(100% - var(--notch)),
+    calc(100% - var(--s)) calc(100% - var(--s)),
+    calc(100% - var(--notch)) calc(100% - var(--s)),
+    calc(100% - var(--notch)) 100%,
+    var(--notch) 100%,
+    var(--notch) calc(100% - var(--s)),
+    var(--s) calc(100% - var(--s)),
+    var(--s) calc(100% - var(--notch)),
+    0 calc(100% - var(--notch))
+  );
+  padding-bottom: 0;
+  background:
+    var(--corner) left 2px top 2px / 2px 2px no-repeat,
+    var(--corner) right 2px top 2px / 2px 2px no-repeat,
+    var(--corner) left 2px bottom 2px / 2px 2px no-repeat,
+    var(--corner) right 2px bottom 2px / 2px 2px no-repeat;
+  color: var(--ink-strong);
+  box-shadow: inset 0 0 0 2px var(--ring);
+}
+
+.btn.ghost:hover,
+.btn.ghost:active {
+  --ring: var(--accent);
+  background-color: var(--accent-wash);
   color: var(--accent-ink);
+  box-shadow: inset 0 0 0 2px var(--ring);
+}
+
+.btn.ghost:focus-visible {
+  --ring: var(--accent);
+  box-shadow: inset 0 0 0 3px var(--ring);
 }
 
 .btn.sm {
-  height: 36px;
-  padding: 0 var(--u-half);
+  padding: 0 var(--u-half) var(--px);
+}
+
+.btn.sm.ghost {
+  padding-bottom: 0;
 }
 
 .btn .arrow {
+  font-family: var(--font-mono);
   transition: transform var(--dur) var(--ease);
 }
 
@@ -228,6 +321,38 @@ a:hover {
   letter-spacing: var(--track-mono-label);
   text-transform: uppercase;
   color: var(--ink-muted);
+}
+
+/*
+ * Rules.
+ * ------
+ * The drafting grid draws each line on the first pixel of its cell. A CSS
+ * border cannot sit there without cost: it takes a pixel of layout, and
+ * that pixel pushes everything after it off the grid — the drift adds up
+ * down the page. So rules are painted, not laid out:
+ *
+ *   top / left of a box      box-shadow: inset 0 1px 0 …  /  inset 1px 0 0 …
+ *   bottom / right of a box  box-shadow: 0 1px 0 …        /  1px 0 0 …
+ *   all four sides           .frame (below)
+ *
+ * An inset shadow lands on the box's own first pixel; an outer one lands
+ * on the first pixel past it. Either way it is exactly a grid line when
+ * the box is whole cells in size.
+ *
+ * .frame draws a full outline whose right and bottom edges sit one pixel
+ * outside the box, on the next grid lines.
+ */
+.frame {
+  position: relative;
+}
+
+.frame::before {
+  content: '';
+  position: absolute;
+  inset: 0 -1px -1px 0;
+  border: var(--rule-width) var(--frame-style, solid) var(--frame-color, var(--rule));
+  pointer-events: none;
+  transition: border-color var(--dur) var(--ease);
 }
 
 /*
@@ -273,27 +398,59 @@ a:hover {
 }
 
 /*
- * Scroll reveal. Opt-in with data-reveal; armed only once JS runs
- * (html.js). Never put data-reveal on an .on-grid element.
+ * Arrivals (see "Depth and motion" in tokens.css).
+ * -------------------------------------------------
+ * Two opt-in attributes. BaseLayout adds .revealed to each the first time
+ * it scrolls into view; until JS runs (html.js) nothing is hidden.
+ *
+ *   data-reveal  the block settles in, staggered by --reveal-i.
+ *   data-draw    the element stays put; its own styles key their line
+ *                work and contents off .revealed (SectionHead, Figure,
+ *                the schedule).
+ *
+ * Arrivals are animations, not transitions, so they never take over a
+ * component's own hover transitions, and a stagger delay does not linger
+ * on the element once it has arrived. Settling moves `translate`, which
+ * composes with `transform`, so it is safe on .on-grid type.
+ *
+ * Everything here is screen-only and motion-only: print and reduced
+ * motion get the finished page, with nothing held back.
  */
-.js [data-reveal] {
-  opacity: 0;
-  transform: translateY(var(--u-half));
-  transition:
-    opacity 0.5s var(--ease),
-    transform 0.5s var(--ease);
-  transition-delay: calc(var(--reveal-i, 0) * 80ms);
+@media screen and (prefers-reduced-motion: no-preference) {
+  .js [data-reveal]:not(.revealed) {
+    opacity: 0;
+  }
+
+  .js [data-reveal].revealed {
+    animation: settle var(--dur-settle) var(--ease-out) backwards;
+    animation-delay: calc(var(--reveal-i, 0) * var(--stagger));
+  }
 }
 
-.js [data-reveal].revealed {
-  opacity: 1;
-  transform: none;
+@keyframes settle {
+  from {
+    opacity: 0;
+    translate: 0 var(--u-half);
+  }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .js [data-reveal] {
-    opacity: 1;
-    transform: none;
+/* Line work ruled in along its length: set transform-origin at its start. */
+@keyframes draw-x {
+  from {
+    scale: 0 1;
+  }
+}
+
+@keyframes draw-y {
+  from {
+    scale: 1 0;
+  }
+}
+
+/* A step: hidden until its delay is up, then simply there. */
+@keyframes appear {
+  from {
+    opacity: 0;
   }
 }
 
@@ -319,11 +476,6 @@ a:hover {
   .no-print,
   [data-grid-overlay] {
     display: none !important;
-  }
-
-  [data-reveal] {
-    opacity: 1 !important;
-    transform: none !important;
   }
 
   a[href^='http']::after {

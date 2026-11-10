@@ -15,9 +15,18 @@ interface Props {
   /** Accessible label. Set to null when the mark is decorative. */
   label?: string | null;
   class?: string;
+  /**
+   * Crop the viewBox to the letters' exact ink, with no side bearing, so
+   * the mark can be set edge to edge (the footer's full-width wordmark).
+   */
+  tight?: boolean;
 }
 
-const { height = 24, label = 'ESRA', class: className } = Astro.props;
+const { height = 24, label = 'ESRA', class: className, tight = false } = Astro.props;
+
+// Ink extents of the paths below: E's left edge at x 57.28, A's right foot
+// at 460.64, the A's apex at y 201.68, the baseline at 311.6.
+const viewBox = tight ? '57.28 201.68 403.36 109.92' : '44 196 424 122';
 
 // A labelled mark is an image; an unlabelled one is decorative and hidden
 // from assistive tech, so its accessible name comes from the link around it.
@@ -27,7 +36,7 @@ const a11y = label
 ---
 
 <svg
-  viewBox="44 196 424 122"
+  viewBox={viewBox}
   height={height}
   class:list={['logo', className]}
   fill="currentColor"

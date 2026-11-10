@@ -44,7 +44,7 @@ const isActive = (href: string) =>
     </ul>
   </nav>
 
-  <a href="/#join" class="btn sm cta">Get involved</a>
+  <a href="/#join" class="btn sm cta" style="--cells: 8">Get involved</a>
 </header>
 
 <style>
@@ -57,8 +57,9 @@ const isActive = (href: string) =>
     gap: var(--u);
     min-height: var(--u-3);
     padding-block: var(--u-half);
-    padding-inline: max(var(--gutter), calc((100% - var(--content-max, var(--sheet-max))) / 2));
-    border-bottom: var(--rule-width) solid var(--rule);
+    padding-inline: var(--edge) var(--edge-end);
+    /* Painted on the grid line under the bar; a border would shift the page. */
+    box-shadow: 0 var(--rule-width) 0 var(--rule);
     background: var(--sheet-glass);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -94,10 +95,10 @@ const isActive = (href: string) =>
 
   .nav-link {
     position: relative;
-    font-family: var(--font-mono);
-    font-size: var(--t-mono);
-    font-weight: var(--w-medium);
-    letter-spacing: var(--track-widest);
+    line-height: var(--lh-grid);
+    font-family: var(--font-pixel);
+    font-size: var(--t-pixel);
+    font-weight: var(--w-regular);
     text-transform: uppercase;
     color: var(--ink-muted);
     white-space: nowrap;
@@ -108,19 +109,34 @@ const isActive = (href: string) =>
     color: var(--ink-strong);
   }
 
-  /* Active page: a beige rule under the label. */
-  .nav-link.active {
-    color: var(--accent-ink);
-  }
-
-  .nav-link.active::after {
+  /* A rule under the label: ruled in from the left under the pointer, in
+     the blueprint blue every link is underlined with; beige and always
+     drawn on the current page. */
+  .nav-link::after {
     content: '';
     position: absolute;
     left: 0;
     right: 0;
     bottom: -6px;
     height: var(--rule-width);
+    background: var(--line);
+    transform-origin: left;
+    scale: 0 1;
+    transition: scale var(--dur-slow) var(--ease-out);
+  }
+
+  .nav-link:hover::after,
+  .nav-link:focus-visible::after {
+    scale: 1 1;
+  }
+
+  .nav-link.active {
+    color: var(--accent-ink);
+  }
+
+  .nav-link.active::after {
     background: var(--accent);
+    scale: 1 1;
   }
 
   .cta {
@@ -162,7 +178,7 @@ const isActive = (href: string) =>
       padding-bottom: var(--u-half);
     }
 
-    .nav-link.active::after {
+    .nav-link::after {
       bottom: -6px;
     }
   }

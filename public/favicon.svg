@@ -1,11 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <!--
-    ESRA mark. Uses the wordmark outlines from esrabot/logo, on the brand
-    "voodoo gray" field so the tile keeps its shape against both light and
-    dark browser chrome.
+    ESRA mark. Uses the wordmark outlines from esrabot/logo, in the site's
+    warm-white ink on its blue-black sheet (--ink on --sheet in tokens.css).
   -->
-  <rect width="512" height="512" fill="#bec1be"/>
-  <g fill="#242424" transform="translate(0, 40) scale(1.18) translate(-38, -38)">
+  <rect width="512" height="512" fill="#0b1320"/>
+  <g fill="#f2ede1" transform="translate(0, 40) scale(1.18) translate(-38, -38)">
     <rect x="146" y="292.72" width="9.44" height="18.88"/>
     <path transform="translate(48.48,311.6) scale(0.16,-0.16)" d="M283 675C124 675 57 599 57 491C57 417 89 365 152 339C90 313 55 261 55 184C55 79 120 0 280 0H622V118H280C211 118 178 150 178 203C178 258 213 285 281 285H616V392H284C216 392 181 417 181 472C181 524 212 557 283 557H621V675Z"/>
     <path transform="translate(143.36,311.6) scale(0.16,-0.16)" d="M261 675C111 675 51 593 51 481C51 387 93 286 273 286H430C513 286 536 246 536 202C536 153 507 118 443 118H63V0H439C593 0 654 84 654 198C654 295 611 397 427 397H269C190 397 169 436 169 477C169 524 196 557 257 557H603V675Z"/>

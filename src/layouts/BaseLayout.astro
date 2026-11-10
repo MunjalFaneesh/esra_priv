@@ -113,15 +113,15 @@ const structuredData = {
         <slot />
       </main>
 
-      <Footer />
-      <Colophon path={sourcePath} foot />
+      <Footer path={sourcePath} />
     </Sheet>
 
-    <!-- Scroll reveal. Inline and dependency-free; if anything here fails,
-         the catch reveals everything rather than leaving content hidden. -->
+    <!-- Arrivals (see global.css). Inline and dependency-free; if anything
+         here fails, the catch reveals everything rather than leaving
+         content hidden. -->
     <script is:inline>
       (function () {
-        var els = document.querySelectorAll('[data-reveal]');
+        var els = document.querySelectorAll('[data-reveal], [data-draw]');
         var show = function (el) {
           el.classList.add('revealed');
         };

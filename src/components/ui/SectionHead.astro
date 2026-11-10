@@ -1,8 +1,9 @@
 ---
 /**
  * Section heading row, lettered like a drawing's sheet label: an optional
- * sheet number, the section name in tracked capitals, a hairline running
- * out to the right, and an optional aside at its end (a count, a link).
+ * sheet number, the section name in pixel capitals, and an optional aside
+ * at the far end (a count, a link). The row is one grid cell tall and is
+ * ruled along the grid line beneath it; a short beige run marks its start.
  *
  * The heading is a real heading element so the outline stays correct.
  */
@@ -23,12 +24,11 @@ const { title, index, as: Tag = 'h2', aside, class: className } = Astro.props;
 const hasAsideSlot = Astro.slots.has('aside');
 ---
 
-<div class:list={['section-head', className]}>
+<div class:list={['section-head', className]} data-draw>
   <Tag class="title">
     {index && <span class="index">{index}</span>}
     <span>{title}</span>
   </Tag>
-  <span class="leader" aria-hidden="true"></span>
   {
     (aside || hasAsideSlot) && (
       <div class="aside">
@@ -40,11 +40,53 @@ const hasAsideSlot = Astro.slots.has('aside');
 
 <style>
   .section-head {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: var(--u-half);
+    justify-content: space-between;
+    gap: var(--u);
     min-height: var(--u);
     margin-bottom: var(--u-2);
+  }
+
+  /* The rule, on the grid line beneath the row (where an outer box-shadow
+     would paint it), and two cells of beige where it begins. Drawn as
+     elements so they can be ruled in. */
+  .section-head::before,
+  .section-head::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    height: var(--rule-width);
+    transform-origin: left;
+  }
+
+  .section-head::before {
+    width: 100%;
+    background: var(--rule);
+  }
+
+  .section-head::after {
+    width: var(--u-2);
+    background: var(--accent);
+  }
+
+  /* On arrival the beige mark is set down first, then the rule runs out
+     from it to the far edge. */
+  @media screen and (prefers-reduced-motion: no-preference) {
+    :global(.js) .section-head:not(.revealed)::before,
+    :global(.js) .section-head:not(.revealed)::after {
+      scale: 0 1;
+    }
+
+    .section-head.revealed::after {
+      animation: draw-x 0.35s var(--ease-out) backwards;
+    }
+
+    .section-head.revealed::before {
+      animation: draw-x var(--dur-draw) var(--ease-draw) 0.2s backwards;
+    }
   }
 
   .title {
@@ -52,11 +94,10 @@ const hasAsideSlot = Astro.slots.has('aside');
     align-items: center;
     gap: var(--u-half);
     margin: 0;
-    font-family: var(--font-mono);
-    font-size: var(--t-mono);
-    font-weight: var(--w-semibold);
+    font-family: var(--font-pixel);
+    font-size: var(--t-pixel);
+    font-weight: var(--w-regular);
     line-height: var(--lh-grid);
-    letter-spacing: var(--track-mono-label);
     text-transform: uppercase;
     color: var(--ink-strong);
   }
@@ -71,17 +112,14 @@ const hasAsideSlot = Astro.slots.has('aside');
     color: var(--ink-faint);
   }
 
-  /* The hairline that carries the eye from the label to the aside. */
-  .leader {
-    flex: 1;
-    min-width: var(--u);
-    height: var(--rule-width);
-    background: var(--rule);
-  }
-
+  /* A fixed row: mixed sizes on one line would otherwise grow it a pixel. */
   .aside {
     flex: none;
+    display: flex;
+    align-items: center;
+    height: var(--u);
     font-size: var(--t-sm);
+    line-height: var(--lh-grid);
   }
 
   @media (max-width: 560px) {

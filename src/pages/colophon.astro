@@ -30,7 +30,7 @@ const build = buildInfo();
       <h2>Construction</h2>
       <p>
         Built with <a href="https://astro.build" rel="noopener">Astro</a> and prerendered to static HTML,
-        deployed on Vercel. Source is at
+        deployed on Vercel. Source is at{' '}
         <a href={SITE.repoUrl} rel="noopener">{SITE.repo}</a>.
       </p>
       <p>
@@ -43,17 +43,18 @@ const build = buildInfo();
 
       <h2>Typography</h2>
       <p>
-        Set in <a href="https://www.ibm.com/plex/" rel="noopener">IBM Plex Mono</a>, an open licence
-        typeface, with the system sans-serif for running text. The design was drawn against Berkeley
-        Mono and Houston Mono; those are commercial licences, so the site ships an open substitute
-        from the same lineage of documentation faces.
+        Set in <a href="https://www.ibm.com/plex/" rel="noopener">IBM Plex</a>, an open licence
+        family: Plex Sans for headlines, Plex Mono for text, data and labels. The design was drawn
+        against Berkeley Mono and Houston Mono; those are commercial licences, so the site ships an
+        open substitute from the same lineage of documentation faces.
       </p>
 
       <h2>Colour</h2>
       <p>
-        The field derives from FED-STD-595C 36495, by way of the ESRA brand grey. Text contrast is
-        enforced in CI: every text-and-surface pair is composited and measured against WCAG&nbsp;AA,
-        and the build fails below it.
+        A blue-black sheet under a faint drafting grid, warm-white line work, and beige for the
+        things you act on. Partner logos are redrawn in that same ink at build time, so none of them
+        clash with the page or each other. Text contrast is enforced in CI: every text-and-surface
+        pair is composited and measured against WCAG&nbsp;AA, and the build fails below it.
       </p>
 
       <h2>Influences</h2>

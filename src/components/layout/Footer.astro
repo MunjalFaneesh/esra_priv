@@ -6,11 +6,23 @@
  * (true statements about the organisation, in the voice of a drawing's
  * notes column), then the link columns. Channel columns come
  * from the org registry, so an account appears here or does not exist.
+ *
+ * Below the columns, the closing colophon band, and last of all the
+ * wordmark set the full width of the page: the drawing's title lettering.
+ * It shares the footer's veil, so the footer simply runs out into it.
  */
 import Logo from '../ui/Logo.astro';
-import MonoLabel from '../ui/MonoLabel.astro';
+import Colophon from '../ui/Colophon.astro';
+import PixelField from '../ui/PixelField.astro';
 import { CONTACTS, NAV, SITE } from '../../data/site';
 import { ORGS, PLATFORM_META } from '../../data/orgs';
+
+interface Props {
+  /** Repo-relative source path, for the colophon band. */
+  path: string;
+}
+
+const { path } = Astro.props;
 
 const siteLinks = NAV.filter((n) => !n.mono);
 const general = CONTACTS[0];
@@ -24,125 +36,167 @@ const notes = [
 ---
 
 <footer class="footer">
-  <div class="closer">
-    <p class="statement">Robots no single campus could build alone.</p>
-    <a class="btn" href="/#join">Get involved <span class="arrow">&#8594;</span></a>
-  </div>
-
-  <div class="cols">
-    <div class="about">
-      <Logo height={22} label={null} />
-      <MonoLabel as="div" size="micro" track="widest" class="notes-head">Notes</MonoLabel>
-      <ol class="notes">
-        {notes.map((n) => <li>{n}</li>)}
-      </ol>
+  <div class="body">
+    <div class="backdrop" aria-hidden="true">
+      <PixelField
+        side="start"
+        overlap={12}
+        cols={24}
+        rows={7}
+        bottom={0}
+        focus={[10, 6]}
+        radius={[11, 6]}
+        seed={23}
+      />
     </div>
 
-    <nav class="col" aria-label="Site">
-      <div class="col-head">Site</div>
-      <ul>
-        {
-          siteLinks.map(({ label, href }) => (
-            <li>
-              <a href={href}>{label}</a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
+    <div class="closer">
+      <p class="statement on-grid">Robots no single campus could build alone.</p>
+      <a class="btn" href="/#join" style="--cells: 9">
+        Get involved <span class="arrow">&#8594;</span>
+      </a>
+    </div>
 
-    <nav class="col" aria-label="Source">
-      <div class="col-head">Source</div>
-      <ul>
-        <li><a href={SITE.orgUrl} rel="noopener">GitHub &#8599;</a></li>
-        <li><a href={SITE.repoUrl} rel="noopener">This site &#8599;</a></li>
-        <li><a href="/rss.xml">RSS feed</a></li>
-        <li><a href="/contact">Contact</a></li>
-        <li><a href="/colophon">Colophon</a></li>
-      </ul>
-    </nav>
+    <div class="cols">
+      <div class="about">
+        <div class="col-head">Notes</div>
+        <ol class="notes">
+          {notes.map((n) => <li>{n}</li>)}
+        </ol>
+      </div>
 
-    {
-      ORGS.map((org) => (
-        <nav class="col" aria-label={`${org.name} channels`}>
-          <div class="col-head">{org.name}</div>
-          <ul>
-            {org.links
-              .filter((l) => l.platform !== 'website' || org.id !== 'esra')
-              .map((link) => (
-                <li>
-                  <a href={link.url} rel="noopener">
-                    {PLATFORM_META[link.platform].label} &#8599;
-                  </a>
-                </li>
-              ))}
-          </ul>
-        </nav>
-      ))
-    }
+      <nav class="col" aria-label="Site">
+        <div class="col-head">Site</div>
+        <ul>
+          {
+            siteLinks.map(({ label, href }) => (
+              <li>
+                <a href={href}>{label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <nav class="col" aria-label="Source">
+        <div class="col-head">Source</div>
+        <ul>
+          <li><a href={SITE.orgUrl} rel="noopener">GitHub &#8599;</a></li>
+          <li><a href={SITE.repoUrl} rel="noopener">This site &#8599;</a></li>
+          <li><a href="/rss.xml">RSS feed</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/colophon">Colophon</a></li>
+        </ul>
+      </nav>
+
+      {
+        ORGS.map((org) => (
+          <nav class="col" aria-label={`${org.name} channels`}>
+            <div class="col-head">{org.name}</div>
+            <ul>
+              {org.links
+                .filter((l) => l.platform !== 'website' || org.id !== 'esra')
+                .map((link) => (
+                  <li>
+                    <a href={link.url} rel="noopener">
+                      {PLATFORM_META[link.platform].label} &#8599;
+                    </a>
+                  </li>
+                ))}
+            </ul>
+          </nav>
+        ))
+      }
+    </div>
+  </div>
+
+  <Colophon path={path} foot />
+
+  <div class="wordmark" aria-hidden="true">
+    <Logo label={null} tight />
   </div>
 </footer>
 
 <style>
+  /* Every rule here is painted on a grid line rather than laid out as a
+     border (see "Rules" in global.css), and every measure is whole cells. */
   .footer {
-    padding-block: var(--u-4) var(--u-3);
-    padding-inline: max(var(--gutter), calc((100% - var(--content-max, var(--sheet-max))) / 2));
-    border-top: var(--rule-width) solid var(--rule-strong);
+    box-shadow: inset 0 var(--rule-width) 0 var(--rule-strong);
     background: var(--veil); /* darken the drafting grid, never repaint it */
+  }
+
+  /* The edges resolve against the footer, which spans the sheet. */
+  .body {
+    position: relative;
+    padding-block: var(--u-4) var(--u-3);
+    padding-inline: var(--edge) var(--edge-end);
+  }
+
+  /* A field of shaded cells in the lower corner, behind the columns. */
+  .backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .closer,
+  .cols {
+    position: relative;
   }
 
   .closer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--u-2);
+    gap: var(--u) var(--u-2);
     flex-wrap: wrap;
     padding-bottom: var(--u-3);
-    margin-bottom: var(--u-3);
-    border-bottom: var(--rule-width) solid var(--rule);
   }
 
   .statement {
+    --lh: var(--lh-h1);
     margin: 0;
-    max-width: 720px;
+    max-width: calc(34 * var(--u));
+    text-wrap: balance;
     font-family: var(--font-display);
     font-size: var(--t-h2);
     font-weight: var(--w-semibold);
-    line-height: var(--lh-h1);
+    line-height: var(--lh);
     letter-spacing: var(--track-tight);
     color: var(--ink-strong);
   }
 
+  /* The notes take what is left; each link column is eight cells. */
   .cols {
     display: grid;
-    grid-template-columns: 1.8fr repeat(4, 1fr);
-    gap: var(--u-2);
-  }
-
-  .about :global(.notes-head) {
-    display: block;
-    margin-top: var(--u);
+    grid-template-columns: minmax(0, 1fr) repeat(4, calc(8 * var(--u)));
+    gap: var(--u-2) var(--u);
+    padding-top: var(--u-3);
+    box-shadow: inset 0 var(--rule-width) 0 var(--rule);
   }
 
   .notes {
-    margin: var(--u-quarter) 0 0;
+    max-width: calc(16 * var(--u));
+    margin: 0;
     padding-left: var(--u);
-    font-size: var(--t-sm);
+    font-family: var(--font-text);
+    font-size: var(--t-text-sm);
     line-height: var(--lh-grid);
-    color: var(--ink-muted);
+    color: var(--ink-body);
   }
 
   .notes li::marker {
     color: var(--accent-ink);
   }
 
+  /* Two rows, so a name that wraps does not push its list down. */
   .col-head {
-    margin-bottom: var(--u-half);
-    font-family: var(--font-mono);
-    font-size: var(--t-micro);
-    font-weight: var(--w-semibold);
+    min-height: var(--u-2);
+    font-family: var(--font-pixel);
+    font-size: var(--t-pixel);
+    font-weight: var(--w-regular);
     line-height: var(--lh-grid);
-    letter-spacing: var(--track-mono-label);
     text-transform: uppercase;
     color: var(--accent-ink);
   }
@@ -150,11 +204,11 @@ const notes = [
   .col ul {
     display: flex;
     flex-direction: column;
-    gap: var(--u-quarter);
     list-style: none;
     margin: 0;
     padding: 0;
     font-size: var(--t-sm);
+    line-height: var(--lh-grid);
   }
 
   .col a {
@@ -168,20 +222,40 @@ const notes = [
 
   @media (max-width: 980px) {
     .cols {
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: var(--u);
+      grid-template-columns: var(--col-3) var(--col-3) minmax(0, 1fr);
+      gap: var(--u-2) var(--u);
     }
     .about {
       grid-column: 1 / -1;
     }
   }
 
+  /*
+   * The wordmark: set the full width of the content measure, so the
+   * letters' ink lines up with the columns above (the logo's tight viewBox
+   * drops its side bearings), with the page's margins either side and
+   * room above and below. Warm white, the same ink as the headlines.
+   */
+  .wordmark {
+    padding-block: var(--u-3);
+    padding-inline: var(--edge) var(--edge-end);
+    color: var(--ink-strong);
+  }
+
+  .wordmark :global(svg) {
+    width: 100%;
+    height: auto;
+  }
+
   @media (max-width: 560px) {
-    .footer {
+    .body {
       padding-block: var(--u-3) var(--u-2);
     }
+    .wordmark {
+      padding-block: var(--u-2);
+    }
     .cols {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: round(down, calc((100% - var(--u)) / 2), var(--u)) minmax(0, 1fr);
     }
   }
 </style>

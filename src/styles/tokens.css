@@ -21,6 +21,8 @@
   --u-2: 48px;
   --u-3: 72px;
   --u-4: 96px;
+  /* One art pixel in UI chrome: the step in a button's corners. */
+  --px: 4px;
 
   /* ---------------------------------------------------------------
    * Sheet surfaces
@@ -42,6 +44,10 @@
   --grid-minor: rgba(96, 144, 214, 0.055);
   --grid-major: rgba(96, 144, 214, 0.11);
   --grid-major-step: 120px;
+  /* Registration marks: a small cross on every major intersection. */
+  --grid-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cpath d='M57 60.5h7M60.5 57v7' stroke='%236090d6' stroke-opacity='.42'/%3E%3C/svg%3E");
+  /* Shaded cells in the background fields (PixelField). */
+  --field: rgb(96, 144, 214);
   --veil: rgba(0, 0, 0, 0.28); /* footer */
   --panel-veil: rgba(0, 0, 0, 0.5); /* the flagship band */
 
@@ -75,6 +81,7 @@
   --accent: #e3d3ad;
   --accent-ink: #e3d3ad;
   --accent-wash: rgba(227, 211, 173, 0.12);
+  --accent-deep: #a8946a; /* a button's lower edge */
 
   /* ---------------------------------------------------------------
    * Flagship band
@@ -96,11 +103,14 @@
   /* ---------------------------------------------------------------
    * Typography
    *
-   *   IBM Plex Sans  — headlines and long-form prose.
-   *   IBM Plex Mono  — running text, data, and every label. Labels are
-   *                    small, uppercase and tracked, like a drawing's
-   *                    lettering.
+   *   IBM Plex Sans  — headlines and anything read as sentences.
+   *   IBM Plex Mono  — data, dates, and the small field labels.
+   *   Silkscreen     — the lettering: nav, section heads, buttons,
+   *                    reference marks. Drawn on an 8px grid, so it is
+   *                    only ever set at 16px or another multiple of 8,
+   *                    and never used for prose.
    * ------------------------------------------------------------- */
+  --font-pixel: 'Silkscreen', ui-monospace, monospace;
   --font-display:
     'IBM Plex Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
@@ -108,7 +118,7 @@
     'IBM Plex Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
 
-  --t-micro: 11px;
+  --t-micro: 12px;
   --t-mono-sm: 12px;
   --t-mono: 12px;
   --t-sm: 14px;
@@ -123,6 +133,13 @@
   --t-hero: clamp(44px, 7vw, 88px);
   --t-stat: clamp(22px, 2.4vw, 28px);
   --t-designation: 120px;
+  --t-pixel: 16px; /* Silkscreen lettering: 2 x its 8px grid */
+  /* Running text — sentences people read, as opposed to data and labels.
+     Set in Plex Sans, which reads far more easily than the mono at
+     paragraph length. --t-text-sm is for card, step and note copy. */
+  --font-text: var(--font-sans);
+  --t-text: 16px;
+  --t-text-sm: 15px;
 
   --track-display: -0.025em;
   --track-tight: -0.02em;
@@ -131,7 +148,7 @@
   --track-wide: 0.04em;
   --track-wider: 0.08em;
   --track-widest: 0.12em;
-  --track-mono-label: 0.16em;
+  --track-mono-label: 0.12em;
 
   /* Line heights: every text line height is a grid multiple. */
   --lh-grid: 24px;
@@ -154,7 +171,16 @@
   /* ---------------------------------------------------------------
    * Layout
    * ------------------------------------------------------------- */
-  --sheet-max: 1200px;
+  --sheet-max: 1200px; /* 50 cells */
+
+  /*
+   * Column tracks that land on the drafting grid at any width: each is
+   * rounded down to whole cells, and the last column of a row takes the
+   * remainder as 1fr. At the full 50-cell measure three columns come out
+   * at 16 cells with one-cell gaps, four at 11 with two-cell gaps.
+   */
+  --col-3: round(down, calc((100% - 2 * var(--u)) / 3), var(--u));
+  --col-4: round(down, calc((100% - 3 * var(--u-2)) / 4), var(--u));
   --gutter: var(--u-2);
   --measure: 620px;
   --measure-wide: 960px;
@@ -163,12 +189,29 @@
 
   /* ---------------------------------------------------------------
    * Depth and motion
+   *
+   * The page moves in three ways, and only these:
+   *
+   *   settle  a block arrives: it fades in from half a cell below.
+   *   draw    line work is ruled in from where it starts, as a pen
+   *           would draw it — section rules, the schedule, its ticks.
+   *   step    pixel things change state in whole steps and never ease:
+   *           the lit cells, the status lamp, a photo printing a row
+   *           of cells at a time, values filled into the title block.
+   *
+   * Arrivals play once, when a thing first scrolls into view, and only
+   * on screen for people who have not asked for reduced motion.
    * ------------------------------------------------------------- */
   --shadow-sheet: 0 24px 72px rgba(0, 0, 0, 0.35);
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* settle */
+  --ease-draw: cubic-bezier(0.6, 0, 0.25, 1); /* a pen: picks up speed, slows to stop */
   --dur-fast: 0.12s;
   --dur: 0.15s;
   --dur-slow: 0.3s;
+  --dur-settle: 0.6s;
+  --dur-draw: 0.9s;
+  --stagger: 80ms;
 
   /* Image treatment: photos print as a blue-black duotone with a faint
      dot screen. */

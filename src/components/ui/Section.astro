@@ -3,14 +3,20 @@
  * A full-bleed horizontal band, separated from the next by a hairline.
  * The band's background runs edge to edge; its content centres at the
  * sheet's --content-max. Pairs with SectionHead for the kicker row.
+ *
+ * The `backdrop` slot takes decoration that sits behind the content and
+ * spans the whole band (see PixelField).
  */
 interface Props {
   id?: string;
-  /** Vertical padding. `tight` for dense listings, `hero` for openers. */
-  pad?: 'tight' | 'normal' | 'hero';
+  /**
+   * Vertical padding. `tight` for dense listings, `hero` for openers, and
+   * `open` for an opener whose last block runs flush into the next band.
+   */
+  pad?: 'tight' | 'normal' | 'hero' | 'open';
   /** `panel` renders the band on the dark instrument-panel surface. */
   tone?: 'sheet' | 'panel';
-  /** Suppress the closing rule (for the last band before the footer). */
+  /** Kept for API compatibility: a band is ruled along its top edge now. */
   last?: boolean;
   class?: string;
 }
@@ -22,6 +28,13 @@ const { id, pad = 'normal', tone = 'sheet', last = false, class: className } = A
   id={id}
   class:list={['section', `pad-${pad}`, { 'tone-panel': tone === 'panel', last }, className]}
 >
+  {
+    Astro.slots.has('backdrop') && (
+      <div class="backdrop" aria-hidden="true">
+        <slot name="backdrop" />
+      </div>
+    )
+  }
   <div class="inner">
     <slot />
   </div>
@@ -29,18 +42,32 @@ const { id, pad = 'normal', tone = 'sheet', last = false, class: className } = A
 
 <style>
   .section {
-    border-bottom: var(--rule-width) solid var(--rule);
+    position: relative;
     scroll-margin-top: var(--u-3);
   }
 
-  .section.last {
-    border-bottom: 0;
+  .backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
   }
 
+  /* The rule between bands is painted on the top grid line of the lower
+     one. A border here would add a pixel per band and walk the whole page
+     off the grid. */
+  .section:not(:first-child) {
+    box-shadow: inset 0 var(--rule-width) 0 var(--rule);
+  }
+
+  /* Content starts and ends on grid lines (see Sheet.astro). It is its own
+     stacking context so a background field can sit behind the content but
+     in front of the band's tone. */
   .inner {
-    max-width: calc(var(--content-max, var(--sheet-max)) + 2 * var(--gutter));
-    margin: 0 auto;
-    padding-inline: var(--gutter);
+    position: relative;
+    z-index: 0;
+    width: var(--content-w);
+    margin-left: var(--edge);
   }
 
   .pad-tight {
@@ -52,11 +79,17 @@ const { id, pad = 'normal', tone = 'sheet', last = false, class: className } = A
   .pad-hero {
     padding-block: var(--u-4) var(--u-3);
   }
+  .pad-open {
+    padding-block: var(--u-4) 0;
+  }
 
   @media (max-width: 860px) {
     .pad-normal,
     .pad-hero {
       padding-block: var(--u-3);
+    }
+    .pad-open {
+      padding-block: var(--u-3) 0;
     }
   }
 
@@ -64,6 +97,9 @@ const { id, pad = 'normal', tone = 'sheet', last = false, class: className } = A
     .pad-normal,
     .pad-hero {
       padding-block: var(--u-2);
+    }
+    .pad-open {
+      padding-block: var(--u-2) 0;
     }
   }
 </style>

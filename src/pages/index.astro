@@ -3,9 +3,14 @@
  * Home — set as an engineering drawing.
  *
  * Each section is a numbered sheet: a title block for the programme at a
- * glance, a ruled specification for the flagship, a schedule drawn as a
- * dimension line, the ways in as three ruled columns, the activity log as
- * a revision table, and the partners as a wall of single-ink marks.
+ * glance and the partners coming round on a reel, a ruled specification
+ * for the flagship, a schedule drawn as a dimension line, the ways in as
+ * three ruled cards, the activity log as a revision table, and the
+ * partners as a roster of single-ink marks.
+ *
+ * The page is set on the drafting grid behind it: every block is whole
+ * cells in size and every rule is painted on a grid line. The notes at
+ * the top of the style block say how.
  *
  * Every figure is real: repo stats from the GitHub API at build time,
  * videos from the orgs' channel feeds, counts from the partners list.
@@ -19,6 +24,7 @@ import Section from '../components/ui/Section.astro';
 import SectionHead from '../components/ui/SectionHead.astro';
 import Figure from '../components/ui/Figure.astro';
 import PartnerMark from '../components/ui/PartnerMark.astro';
+import PixelField from '../components/ui/PixelField.astro';
 import { CONTACTS, SITE } from '../data/site';
 import { getPublicRepos } from '../lib/github';
 import { getLatestPerOrg } from '../lib/youtube';
@@ -226,7 +232,8 @@ const feed: FeedItem[] = [
     date: r.pushedAt ? new Date(r.pushedAt) : null,
     kind: 'Repo',
     title: r.name,
-    source: [r.language, `★${r.stars}`].filter(Boolean).join(' '),
+    // A star count only once there is one: "★0" reads as a verdict.
+    source: [r.language, r.stars > 0 && `★${r.stars}`].filter(Boolean).join(' '),
     href: r.url,
     external: true,
   })),
@@ -246,18 +253,36 @@ const KIND_LABEL = {
   organization: 'Organization',
 };
 
-/** "Club · Caltech · Pasadena, CA" — the school is dropped when it is the partner. */
-const partnerMeta = (p: (typeof partners)[number]) =>
-  [KIND_LABEL[p.data.kind], p.data.kind === 'school' ? null : p.data.school, p.data.location]
-    .filter(Boolean)
-    .join(' · ');
+/** The carousel takes about seven seconds a partner to come round. */
+const reelSeconds = Math.max(28, partners.length * 7);
+
+/**
+ * The open place closes the last row of the roster, however many partners
+ * there are: it spans whatever the row has left, and a whole row of its
+ * own when the partners fill theirs exactly. One span per column count.
+ */
+const openSpan = (cols: number) => cols - (partners.length % cols);
+const openSpans = [5, 3, 2].map((c) => `--span-${c}: ${openSpan(c)}`).join('; ');
 ---
 
 <BaseLayout sourcePath="site/index.astro">
   <!-- ============================================================
        Hero — the headline, and the programme's title block
        ============================================================ -->
-  <Section pad="hero">
+  <Section pad="open">
+    <PixelField
+      slot="backdrop"
+      side="end"
+      overlap={16}
+      cols={30}
+      rows={11}
+      focus={[18, 0]}
+      radius={[13, 10]}
+      lit={4}
+      seed={11}
+      keepNarrow
+    />
+
     <div class="hero">
       <div class="hero-copy">
         <p class="kicker on-grid">Experimental Student Robotics Association</p>
@@ -265,47 +290,49 @@ const partnerMeta = (p: (typeof partners)[number]) =>
         <h1 class="on-grid">One robot.<br /><span class="accent">Many campuses.</span></h1>
 
         <p class="lede on-grid">
-          ESRA is a national nonprofit that connects university robotics teams — to share what they
-          learn, split the engineering, and build robots no single campus could build alone.
+          ESRA is a national nonprofit that connects university robotics teams&nbsp;— to share what
+          they learn, split the engineering, and build robots no single campus could build alone.
         </p>
 
         <div class="actions">
-          <a class="btn" href="#join">Get involved <span class="arrow">&#8594;</span></a>
-          <a class="btn ghost" href="#h1">Meet H1</a>
+          <a class="btn" href="#join" style="--cells: 9">
+            Get involved <span class="arrow">&#8594;</span>
+          </a>
+          <a class="btn ghost" href="#h1" style="--cells: 6">Meet H1</a>
         </div>
       </div>
 
-      <div class="title-block" data-reveal>
+      <div class="title-block frame" data-reveal>
         <div class="tb-head">
           <span>Programme summary</span>
-          <span>Est. {SITE.established}</span>
+          <span>Since {SITE.established}</span>
         </div>
         <dl class="tb-grid">
-          <div>
+          <div style="--i: 0">
             <dt>Flagship</dt>
             <dd>H1 humanoid</dd>
           </div>
-          <div>
+          <div style="--i: 1">
             <dt>Status</dt>
             <dd><span class="live" aria-hidden="true"></span>{programStatus}</dd>
           </div>
-          <div>
+          <div style="--i: 2">
             <dt>Hardware start</dt>
             <dd>Nov 2026</dd>
           </div>
-          <div>
+          <div style="--i: 3">
             <dt>Target</dt>
             <dd>May–Jun 2027</dd>
           </div>
-          <div>
+          <div style="--i: 4">
             <dt>Partners</dt>
             <dd>{partners.length}</dd>
           </div>
-          <div>
+          <div style="--i: 5">
             <dt>Schools</dt>
             <dd>{schoolCount}</dd>
           </div>
-          <div class="full">
+          <div class="full" style="--i: 6">
             <dt>Licence</dt>
             <dd>{SITE.license}</dd>
           </div>
@@ -313,20 +340,47 @@ const partnerMeta = (p: (typeof partners)[number]) =>
       </div>
     </div>
 
-    <div class="with" data-reveal>
-      <span class="label">Built with</span>
-      <ul>
-        {
-          partners.map((p) => (
-            <li>
-              <a href={p.data.url} rel="noopener" target="_blank" title={p.data.name}>
-                <PartnerMark partner={p} height={30} maxWidth={84} />
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-      <a class="label with-all" href="#partners">All partners &#8595;</a>
+    <!-- The partners, coming round on a reel. The list is set twice so the
+         loop has no seam; the second copy is hidden from assistive tech
+         and from the keyboard. It stops under the pointer, on focus, with
+         the pause control, and for anyone who asks for reduced motion. -->
+    <div class="reel-band" data-reveal>
+      <div class="reel-label">
+        <span class="label">Built with</span>
+        <button class="reel-toggle" type="button" aria-pressed="false" data-reel-toggle hidden>
+          <span class="sr-only">Pause the partner carousel</span>
+          <span class="reel-icon" aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <div class="reel" data-reel style={`--reel-time: ${reelSeconds}s`}>
+        <div class="reel-view">
+          {
+            [false, true].map((copy) => (
+              <ul class="reel-track" aria-hidden={copy ? 'true' : undefined}>
+                {partners.map((p) => (
+                  <li>
+                    <a
+                      href={p.data.url}
+                      rel="noopener"
+                      target="_blank"
+                      tabindex={copy ? -1 : undefined}
+                    >
+                      <PartnerMark partner={p} height={32} maxWidth={64} decorative />
+                      <span class="reel-name">{p.data.name}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ))
+          }
+        </div>
+      </div>
+
+      <a class="reel-all" href="#partners">
+        <span class="label">All {partners.length} partners</span>
+        <span aria-hidden="true">&#8595;</span>
+      </a>
     </div>
   </Section>
 
@@ -338,7 +392,7 @@ const partnerMeta = (p: (typeof partners)[number]) =>
 
     <div class="why">
       <div class="why-copy" data-reveal>
-        <p class="statement">Every campus is debugging the same robot alone.</p>
+        <p class="statement on-grid">Every campus is debugging the same robot alone.</p>
         <p class="body">
           One team spends a semester learning to control a robot’s joints while another works
           through the same problem, with little chance to compare notes. ESRA connects student-led
@@ -372,12 +426,12 @@ const partnerMeta = (p: (typeof partners)[number]) =>
       </div>
     </div>
 
-    <div class="process">
+    <div class="process" data-draw>
       <p class="label">How a joint build works</p>
       <ol class="steps">
         {
           steps.map((s, i) => (
-            <li class="step" data-reveal style={`--reveal-i: ${i}`}>
+            <li class="step" style={`--i: ${i}`}>
               <span class="step-no">Step {i + 1}</span>
               <strong>{s.title}</strong>
               <p>{s.body}</p>
@@ -402,7 +456,7 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     <div class="program">
       <div class="program-copy" data-reveal>
         <p class="designation" aria-hidden="true">H1</p>
-        <p class="statement">A full-scale humanoid, built across campuses.</p>
+        <p class="statement on-grid">A full-scale humanoid, built across campuses.</p>
         <p class="body">
           H1 brings mechanical structures, actuators, electronics, sensing, and control software
           together in one robot — designed, built, and tested by teams at different universities.
@@ -434,22 +488,29 @@ const partnerMeta = (p: (typeof partners)[number]) =>
           </tr>
           <tr>
             <th scope="row">Outputs</th>
-            <td>Technical papers, engineering videos, progress reports, open-source code</td>
+            <td>
+              Technical papers, engineering videos, progress reports,
+              <span class="nowrap">open-source</span> code
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="schedule" style={`--progress: ${progress};`} data-reveal>
+    <div class="schedule" style={`--progress: ${progress};`} data-draw>
       <p class="label">Schedule</p>
       <div class="dim" aria-hidden="true">
+        <span class="dim-ruler"></span>
         <span class="dim-done"></span>
         {current >= 0 && <span class="dim-now">Now</span>}
       </div>
       <ol class="stops">
         {
           milestones.map((m, i) => (
-            <li class:list={['stop', { done: i < current, current: i === current }]}>
+            <li
+              class:list={['stop', { done: i < current, current: i === current }]}
+              style={`--i: ${i}`}
+            >
               <span class="stop-ref">
                 M{i + 1}
                 {i === current && <span class="now-tag">Now</span>}
@@ -468,7 +529,7 @@ const partnerMeta = (p: (typeof partners)[number]) =>
       <div class="track-grid">
         {
           tracks.map((t, i) => (
-            <article class="track" data-reveal style={`--reveal-i: ${i}`}>
+            <article class="track frame" data-reveal style={`--reveal-i: ${i}`}>
               <div class="track-meta">
                 <span class="label">{t.type}</span>
                 <span class="tag">{t.level}</span>
@@ -483,17 +544,31 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   </Section>
 
   <!-- ============================================================
-       03 — Ways in, as three ruled columns
+       03 — Ways in, as three ruled cards
        ============================================================ -->
   <Section id="join">
+    <PixelField
+      slot="backdrop"
+      side="end"
+      overlap={12}
+      cols={24}
+      rows={8}
+      focus={[14, 0]}
+      radius={[11, 7]}
+      lit={3}
+      seed={5}
+    />
+
     <SectionHead index="03" title="Get involved" />
 
-    <p class="statement wide" data-reveal>Three ways in. Start where your team fits.</p>
+    <div class="lead" data-reveal>
+      <p class="statement wide on-grid">Three ways in. Start where your team fits.</p>
+    </div>
 
     <div class="ways">
       {
         ways.map((w, i) => (
-          <article class="way" data-reveal style={`--reveal-i: ${i}`}>
+          <article class="way frame" data-reveal style={`--reveal-i: ${i}`}>
             <div class="way-top">
               <span class="way-ref">{w.ref}</span>
               <span class="label">{w.who}</span>
@@ -526,7 +601,7 @@ const partnerMeta = (p: (typeof partners)[number]) =>
           </a>
         </SectionHead>
 
-        <div class="log" data-reveal>
+        <div class="log" data-draw>
           <div class="log-head" aria-hidden="true">
             <span>Date</span>
             <span>Type</span>
@@ -534,8 +609,8 @@ const partnerMeta = (p: (typeof partners)[number]) =>
             <span>Source</span>
           </div>
           <ul>
-            {feed.map((item) => (
-              <li>
+            {feed.map((item, i) => (
+              <li style={`--i: ${i}`}>
                 <a
                   href={item.href}
                   rel={item.external ? 'noopener' : undefined}
@@ -561,7 +636,7 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   }
 
   <!-- ============================================================
-       05 — Partners: every logo, printed in the site's ink
+       05 — Partners: a roster of tiles, every logo in the site's ink
        ============================================================ -->
   <Section id="partners" last>
     <SectionHead
@@ -570,38 +645,139 @@ const partnerMeta = (p: (typeof partners)[number]) =>
       aside={`${partners.length} partners · ${schoolCount} schools`}
     />
 
-    <div class="wall">
+    <div class="lead" data-reveal>
+      <p class="statement wide on-grid">The clubs and schools in the network.</p>
+    </div>
+
+    <div class="roster" style={openSpans} data-reveal>
       {
         partners.map((p) => (
-          <a class="partner" href={p.data.url} rel="noopener" target="_blank">
-            <div class="partner-mark">
-              <PartnerMark partner={p} height={72} maxWidth={168} decorative />
+          <a class="tile" href={p.data.url} rel="noopener" target="_blank">
+            <div class="tile-top">
+              <span class="label">{KIND_LABEL[p.data.kind]}</span>
+              <span class="tile-go" aria-hidden="true">
+                &#8599;
+              </span>
             </div>
-            <div class="partner-name">{p.data.name}</div>
-            <div class="label">{partnerMeta(p)}</div>
-            <span class="partner-go" aria-hidden="true">
-              &#8599;
-            </span>
+            <div class="tile-mark">
+              <PartnerMark partner={p} height={72} maxWidth={144} decorative />
+            </div>
+            <div class="tile-name">{p.data.name}</div>
+            <div class="tile-meta label">
+              {p.data.kind !== 'school' && <span>{p.data.school}</span>}
+              {p.data.location && <span>{p.data.location}</span>}
+            </div>
           </a>
         ))
       }
-      <a class="partner open" href="#join">
-        <div class="partner-mark">
-          <span class="slot" aria-hidden="true">
-            +
+      <a class="tile open" href="#join">
+        <div class="open-in">
+          <div class="open-slot" aria-hidden="true"></div>
+          <div class="open-copy">
+            <div class="tile-name">Your team here</div>
+            <div class="label">Clubs, labs and companies welcome</div>
+          </div>
+          <span class="open-go">
+            Get involved <span class="arrow" aria-hidden="true">&#8594;</span>
           </span>
         </div>
-        <div class="partner-name">Your team here</div>
-        <div class="label">Clubs, labs and companies welcome</div>
-        <span class="partner-go" aria-hidden="true">
-          &#8594;
-        </span>
       </a>
     </div>
   </Section>
 </BaseLayout>
 
+<script is:inline>
+  // The carousel's pause control, and a gentle stop. Without JS the reel
+  // still stops under the pointer and on focus (instantly, in CSS), so the
+  // button is only shown once this runs.
+  //
+  // With JS the reel coasts to a stop rather than freezing: its speed is
+  // eased down to nothing under the pointer, on focus or on pause, and
+  // eased back up afterwards. data-eased hands the stopping over from the
+  // CSS rules to this script.
+  (function () {
+    var reel = document.querySelector('[data-reel]');
+    var toggle = document.querySelector('[data-reel-toggle]');
+    if (!reel || !toggle) return;
+    toggle.hidden = false;
+
+    // None under reduced motion (the reel is a static strip then).
+    var anims = reel.getAnimations ? reel.getAnimations({ subtree: true }) : [];
+    var held = { hover: false, focus: false, paused: false };
+    var rate = 1;
+    var raf = 0;
+
+    var STOP_MS = 450; // quick, but you see it slow
+    var START_MS = 700; // pick up speed a little more gently
+
+    function setRate(r) {
+      rate = r;
+      anims.forEach(function (a) {
+        a.playbackRate = r;
+      });
+    }
+
+    function settle() {
+      var to = held.hover || held.focus || held.paused ? 0 : 1;
+      var from = rate;
+      if (from === to) return;
+      cancelAnimationFrame(raf);
+      var dur = (to === 0 ? STOP_MS : START_MS) * Math.abs(to - from);
+      var start = performance.now();
+      raf = requestAnimationFrame(function frame(now) {
+        var t = Math.min(1, (now - start) / dur);
+        // Stopping: ease-out, most of the speed shed at once, then a short
+        // coast. Starting: ease-in-out, so it never lurches.
+        var k = to === 0 ? 1 - (1 - t) * (1 - t) : t * t * (3 - 2 * t);
+        setRate(from + (to - from) * k);
+        if (t < 1) raf = requestAnimationFrame(frame);
+      });
+    }
+
+    function hold(key, on) {
+      held[key] = on;
+      settle();
+    }
+
+    toggle.addEventListener('click', function () {
+      held.paused = !held.paused;
+      reel.toggleAttribute('data-paused', held.paused);
+      toggle.setAttribute('aria-pressed', String(held.paused));
+      settle();
+    });
+
+    if (!anims.length) return;
+    reel.setAttribute('data-eased', '');
+    reel.addEventListener('pointerenter', function () {
+      hold('hover', true);
+    });
+    reel.addEventListener('pointerleave', function () {
+      hold('hover', false);
+    });
+    reel.addEventListener('focusin', function () {
+      hold('focus', true);
+    });
+    reel.addEventListener('focusout', function (e) {
+      if (!reel.contains(e.relatedTarget)) hold('focus', false);
+    });
+  })();
+</script>
+
 <style>
+  /*
+   * Everything on this page is set on the drafting grid behind it.
+   *
+   *   - Every block is whole cells (24px) wide and tall, so nothing below
+   *     it is pushed off a line.
+   *   - Rules are painted on grid lines with box-shadow or .frame, never
+   *     laid out as borders (see "Rules" in global.css).
+   *   - Columns are cut with the --col-* tracks, which round to whole
+   *     cells at any width.
+   *   - Display type (.on-grid) sits with its baseline on a line. Running
+   *     text fills its row; single-line table rows are two cells tall and
+   *     centre their text on the line between.
+   */
+
   /* ============================================================
      Shared
      ============================================================ */
@@ -610,26 +786,33 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   }
 
   .statement {
+    --lh: var(--lh-h1);
     margin: 0;
-    max-width: 600px;
+    max-width: calc(25 * var(--u));
     font-family: var(--font-display);
     font-size: var(--t-h2);
     font-weight: var(--w-semibold);
-    line-height: var(--lh-h1);
+    line-height: var(--lh);
     letter-spacing: var(--track-tight);
     color: var(--ink-strong);
     text-wrap: balance;
   }
 
   .statement.wide {
-    max-width: 760px;
+    max-width: calc(32 * var(--u));
+  }
+
+  .lead {
     margin-bottom: var(--u-2);
   }
 
+  /* Running text is set in sans and kept bright: the mono and the muted
+     ink are for data and labels, not for sentences. */
   .body {
     margin: var(--u) 0 0;
-    max-width: var(--measure);
-    font-size: var(--t-base);
+    max-width: calc(25 * var(--u));
+    font-family: var(--font-text);
+    font-size: var(--t-text);
     line-height: var(--lh-grid);
     color: var(--ink-body);
   }
@@ -641,7 +824,154 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     height: 8px;
     margin-right: 10px;
     background: var(--signal);
-    vertical-align: 1px;
+    /* Nudged with position, not vertical-align, which would grow the line. */
+    position: relative;
+    top: -1px;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+  }
+
+  /* ============================================================
+     Motion (see "Depth and motion" in tokens.css)
+     ============================================================ */
+  @media screen and (prefers-reduced-motion: no-preference) {
+    /* The status lamp: lit, with a short dip every few seconds — stepped,
+       like an indicator LED, not a pulse. Both lamps keep time. */
+    .live {
+      animation: lamp 2.4s steps(1, end) infinite;
+    }
+
+    /* The title block arrives as a blank form; its values are then
+       filled in one field at a time. */
+    :global(.js) .title-block:not(.revealed) dd {
+      opacity: 0;
+    }
+
+    .title-block.revealed dd {
+      animation: appear 1ms backwards;
+      animation-delay: calc(0.4s + var(--i) * 90ms);
+    }
+
+    /*
+     * The two ruled sequences — how a joint build works, and the schedule.
+     * The rule is drawn from the left; each tick is struck as the pen
+     * passes it (--at, below), and its column settles in just after.
+     * Hidden states scale to 0 on both axes so they hold whichever way
+     * the rule runs.
+     */
+    :global(.js) .process:not(.revealed) .steps::before,
+    :global(.js) .process:not(.revealed) .step::before,
+    :global(.js) .schedule:not(.revealed) .stops::before,
+    :global(.js) .schedule:not(.revealed) .stop::before {
+      scale: 0;
+    }
+
+    :global(.js) .process:not(.revealed) .step > *,
+    :global(.js) .schedule:not(.revealed) .stop > *,
+    :global(.js) .schedule:not(.revealed) .dim > * {
+      opacity: 0;
+    }
+
+    .process.revealed .steps::before,
+    .schedule.revealed .stops::before {
+      animation: draw-x var(--dur-draw) var(--ease-draw) backwards;
+    }
+
+    .process.revealed .step::before,
+    .schedule.revealed .stop::before {
+      animation: draw-y 0.2s var(--ease-out) var(--at, 0s) backwards;
+    }
+
+    .process.revealed .step > *,
+    .schedule.revealed .stop > * {
+      animation: settle var(--dur-settle) var(--ease-out) backwards;
+      animation-delay: calc(var(--at, 0s) + 0.1s);
+    }
+
+    /* When the pen passes each tick, for --ease-draw over --dur-draw. */
+    .step:nth-child(2) {
+      --at: 0.35s;
+    }
+    .step:nth-child(3) {
+      --at: 0.45s;
+    }
+    .stop:nth-child(2) {
+      --at: 0.32s;
+    }
+    .stop:nth-child(3) {
+      --at: 0.4s;
+    }
+    .stop:nth-child(4) {
+      --at: 0.51s;
+    }
+
+    /* Once the line is drawn, the progress made runs out along it to the
+       "now" marker, which rides at its head. */
+    .schedule.revealed .dim-done {
+      animation: progress 0.9s var(--ease-out) 0.7s backwards;
+    }
+
+    .schedule.revealed .dim-now {
+      animation: progress-now 0.9s var(--ease-out) 0.7s backwards;
+    }
+
+    /* The ruler is graduated as the pen goes, a whole tick at a time, then
+       its ticks turn blue as the progress runs over them. */
+    .schedule.revealed .dim-ruler {
+      animation:
+        graduate var(--dur-draw) var(--ease-draw) backwards,
+        fill 0.9s var(--ease-out) 0.7s backwards;
+    }
+
+    /* Run down the page, the schedule's rule is drawn downwards. */
+    @media (max-width: 900px) {
+      .schedule.revealed .stops::before {
+        animation-name: draw-y;
+      }
+    }
+
+    /* The log prints a line at a time, newest first. */
+    :global(.js) .log:not(.revealed) li {
+      opacity: 0;
+    }
+
+    .log.revealed li {
+      animation: appear 1ms backwards;
+      animation-delay: calc(0.15s + var(--i) * 70ms);
+    }
+  }
+
+  @keyframes lamp {
+    80% {
+      opacity: 0.35;
+    }
+  }
+
+  @keyframes progress {
+    from {
+      width: 0;
+    }
+  }
+
+  @keyframes graduate {
+    from {
+      --drawn: 0%;
+    }
+  }
+
+  @keyframes fill {
+    from {
+      --fill: 0%;
+    }
+  }
+
+  @keyframes progress-now {
+    from {
+      left: 0;
+      opacity: 0;
+    }
   }
 
   /* ============================================================
@@ -649,18 +979,17 @@ const partnerMeta = (p: (typeof partners)[number]) =>
      ============================================================ */
   .hero {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 384px;
+    grid-template-columns: minmax(0, 1fr) calc(18 * var(--u));
     gap: var(--u-2) var(--u-3);
     align-items: end;
   }
 
   .kicker {
     margin: 0;
-    font-family: var(--font-mono);
-    font-size: var(--t-mono);
-    font-weight: var(--w-medium);
+    font-family: var(--font-pixel);
+    font-size: var(--t-pixel);
+    font-weight: var(--w-regular);
     line-height: var(--lh-grid);
-    letter-spacing: var(--track-mono-label);
     text-transform: uppercase;
     color: var(--accent-ink);
   }
@@ -678,7 +1007,7 @@ const partnerMeta = (p: (typeof partners)[number]) =>
 
   .lede {
     margin: var(--u) 0 0;
-    max-width: 560px;
+    max-width: calc(23 * var(--u));
     font-family: var(--font-sans);
     font-size: 18px;
     line-height: var(--lh-grid);
@@ -688,21 +1017,23 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   .actions {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--u-half);
+    gap: var(--u);
     margin-top: var(--u-2);
   }
 
   /* --- title block ------------------------------------------------ */
   .title-block {
-    border: var(--rule-width) solid var(--rule-strong);
-    background: var(--sheet);
+    --frame-color: var(--rule-strong);
+    background: var(--sheet-glass);
   }
 
   .tb-head {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
-    gap: var(--u-half);
-    padding: var(--u-quarter) var(--u-half);
+    gap: 0 var(--u-half);
+    white-space: nowrap;
+    padding: var(--u-half) var(--u);
     font-size: var(--t-micro);
     font-weight: var(--w-medium);
     line-height: var(--lh-grid);
@@ -711,19 +1042,29 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     color: var(--ink-muted);
   }
 
+  .tb-head span:first-child {
+    font-family: var(--font-pixel);
+    font-size: var(--t-pixel);
+    font-weight: var(--w-regular);
+    letter-spacing: 0;
+    color: var(--ink-strong);
+  }
+
   .tb-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: round(down, 50%, var(--u)) minmax(0, 1fr);
     margin: 0;
   }
 
   .tb-grid > div {
-    padding: var(--u-half);
-    border-top: var(--rule-width) solid var(--rule);
+    padding: var(--u-half) var(--u);
+    box-shadow: inset 0 var(--rule-width) 0 var(--rule);
   }
 
-  .tb-grid > div:nth-child(odd):not(.full) {
-    border-right: var(--rule-width) solid var(--rule);
+  .tb-grid > div:nth-child(even):not(.full) {
+    box-shadow:
+      inset 0 var(--rule-width) 0 var(--rule),
+      inset var(--rule-width) 0 0 var(--rule);
   }
 
   .tb-grid .full {
@@ -748,45 +1089,186 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     color: var(--ink-strong);
   }
 
-  /* --- "built with" strip ---------------------------------------- */
-  .with {
-    display: flex;
-    align-items: center;
-    gap: var(--u) var(--u-2);
-    flex-wrap: wrap;
+  /* --- partner reel ---------------------------------------------- */
+  /* A ruled band along the foot of the hero: a label cell, the reel, and
+     a link cell, divided on grid lines. */
+  .reel-band {
+    display: grid;
+    grid-template-columns: calc(7 * var(--u)) minmax(0, 1fr) calc(8 * var(--u));
+    height: var(--u-4);
     margin-top: var(--u-3);
-    padding-top: var(--u);
-    border-top: var(--rule-width) solid var(--rule);
+    box-shadow: inset 0 var(--rule-width) 0 var(--rule);
   }
 
-  .with ul {
+  .reel-label,
+  .reel-all {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: var(--u-half) var(--u-2);
-    list-style: none;
-    margin: 0;
-    padding: 0;
+    gap: var(--u-half);
   }
 
-  .with li a {
-    display: block;
+  /* One cell square; the icon is drawn in art pixels. */
+  .reel-toggle {
+    display: grid;
+    place-items: center;
+    width: var(--u);
+    height: var(--u);
+    padding: 0;
+    border: 0;
+    background: none;
     color: var(--ink-muted);
-    text-decoration: none;
+    cursor: pointer;
     transition: color var(--dur) var(--ease);
   }
 
-  .with li a:hover {
+  .reel-toggle:hover {
     color: var(--accent-ink);
   }
 
-  .with-all {
-    margin-left: auto;
+  .reel-toggle[hidden] {
+    display: none;
+  }
+
+  /* Two bars for pause; a stepped triangle for play. */
+  .reel-icon {
+    width: 10px;
+    height: 10px;
+    background:
+      linear-gradient(currentColor, currentColor) left / 4px 100% no-repeat,
+      linear-gradient(currentColor, currentColor) right / 4px 100% no-repeat;
+  }
+
+  .reel-toggle[aria-pressed='true'] .reel-icon {
+    background: currentColor;
+    clip-path: polygon(
+      0 0,
+      4px 0,
+      4px 2px,
+      8px 2px,
+      8px 4px,
+      10px 4px,
+      10px 6px,
+      8px 6px,
+      8px 8px,
+      4px 8px,
+      4px 10px,
+      0 10px
+    );
+  }
+
+  .reel {
+    min-width: 0;
+    box-shadow: inset var(--rule-width) 0 0 var(--rule);
+  }
+
+  /* The window the reel passes behind, faded at both ends. */
+  .reel-view {
+    --reel-gap: var(--u-3);
+    display: flex;
+    gap: var(--reel-gap);
+    height: 100%;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 72px,
+      #000 calc(100% - 72px),
+      transparent
+    );
+    mask-image: linear-gradient(90deg, transparent, #000 72px, #000 calc(100% - 72px), transparent);
+  }
+
+  /* Each copy is at least as wide as the window, so two always cover it
+     however few partners there are. */
+  .reel-track {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: var(--reel-gap);
+    min-width: 100%;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    animation: reel var(--reel-time, 40s) linear infinite;
+  }
+
+  @keyframes reel {
+    to {
+      transform: translateX(calc(-100% - var(--reel-gap)));
+    }
+  }
+
+  /* Without JS, stop dead. With it (data-eased), the script eases the
+     reel to a stop instead. */
+  .reel:not([data-eased]):hover .reel-track,
+  .reel:not([data-eased]):focus-within .reel-track,
+  .reel:not([data-eased])[data-paused] .reel-track {
+    animation-play-state: paused;
+  }
+
+  .reel-track a {
+    display: flex;
+    align-items: center;
+    gap: var(--u-half);
+    height: var(--u-2);
+    color: var(--ink-muted);
     text-decoration: none;
+    white-space: nowrap;
+    transition: color var(--dur) var(--ease);
   }
 
-  .with-all:hover {
+  .reel-track a:hover,
+  .reel-track a:focus-visible {
     color: var(--accent-ink);
+  }
+
+  .reel-name {
+    font-size: var(--t-micro);
+    font-weight: var(--w-medium);
+    line-height: var(--lh-grid);
+    letter-spacing: var(--track-mono-label);
+    text-transform: uppercase;
+  }
+
+  .reel-all {
+    justify-content: flex-end;
+    color: var(--ink-muted);
+    text-decoration: none;
+    box-shadow: inset var(--rule-width) 0 0 var(--rule);
+    transition:
+      color var(--dur) var(--ease),
+      background-color var(--dur) var(--ease);
+  }
+
+  .reel-all .label {
+    color: inherit;
+  }
+
+  .reel-all:hover {
+    color: var(--accent-ink);
+  }
+
+  /* No motion: the reel becomes a strip you scroll yourself. */
+  @media (prefers-reduced-motion: reduce) {
+    .reel-view {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .reel-track {
+      justify-content: flex-start;
+      padding-inline: var(--u-3);
+      animation: none;
+    }
+
+    .reel-track[aria-hidden] {
+      display: none;
+    }
+
+    .reel-toggle {
+      display: none;
+    }
   }
 
   /* ============================================================
@@ -794,43 +1276,69 @@ const partnerMeta = (p: (typeof partners)[number]) =>
      ============================================================ */
   .why {
     display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-columns: minmax(0, 1fr) round(down, 40%, var(--u));
     gap: var(--u-2) var(--u-3);
     align-items: start;
   }
 
   .note {
-    max-width: var(--measure);
+    max-width: calc(26 * var(--u));
     margin-top: var(--u-2);
     padding-left: var(--u);
-    border-left: 2px solid var(--accent);
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+
+  .note .label {
+    display: block;
   }
 
   .note p {
     margin: 0;
-    font-size: var(--t-sm);
+    font-family: var(--font-text);
+    font-size: var(--t-text-sm);
     line-height: var(--lh-grid);
-    color: var(--ink-muted);
+    color: var(--ink-body);
   }
 
   .process {
     margin-top: var(--u-3);
   }
 
+  .process > .label,
+  .schedule > .label {
+    margin: 0;
+  }
+
   .steps {
+    position: relative;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: var(--col-3) var(--col-3) minmax(0, 1fr);
+    column-gap: var(--u);
     list-style: none;
-    margin: var(--u-half) 0 0;
+    margin: 0;
     padding: 0;
-    border-top: var(--rule-width) solid var(--rule-strong);
+  }
+
+  /* The rule both sequences hang from, on the grid line at their top edge
+     (where an inset box-shadow would paint it). An element, so it can be
+     drawn in. */
+  .steps::before,
+  .stops::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--rule-width);
+    background: var(--rule-strong);
+    transform-origin: left;
   }
 
   .step {
     position: relative;
     display: flex;
     flex-direction: column;
-    padding: var(--u) var(--u-2) 0 0;
+    padding-top: var(--u);
   }
 
   /* A tick where each step starts, crossing the rule like a dimension mark. */
@@ -838,7 +1346,7 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   .stop::before {
     content: '';
     position: absolute;
-    top: -7px;
+    top: -6px;
     left: 0;
     width: var(--rule-width);
     height: 13px;
@@ -846,10 +1354,10 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   }
 
   .step-no {
-    font-size: var(--t-micro);
-    font-weight: var(--w-semibold);
+    font-family: var(--font-pixel);
+    font-size: var(--t-pixel);
+    font-weight: var(--w-regular);
     line-height: var(--lh-grid);
-    letter-spacing: var(--track-mono-label);
     text-transform: uppercase;
     color: var(--accent-ink);
   }
@@ -869,14 +1377,16 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   .step p,
   .stop p,
   .track p {
-    margin: var(--u-half) 0 0;
-    font-size: var(--t-sm);
+    margin: 0;
+    max-width: calc(16 * var(--u));
+    font-family: var(--font-text);
+    font-size: var(--t-text-sm);
     line-height: var(--lh-grid);
-    color: var(--ink-muted);
+    color: var(--ink-body);
   }
 
   .step-out {
-    margin-top: var(--u-half);
+    margin-top: var(--u);
     font-size: var(--t-micro);
     font-weight: var(--w-medium);
     line-height: var(--lh-grid);
@@ -890,21 +1400,31 @@ const partnerMeta = (p: (typeof partners)[number]) =>
      ============================================================ */
   .program {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) round(down, 50%, var(--u));
     gap: var(--u-2) var(--u-3);
     align-items: end;
   }
 
-  /* The designation is drawn in outline, like a part on a drawing. */
+  /*
+   * The designation is drawn in outline, like a part on a drawing — and
+   * at this size one pixel of the lettering is exactly one grid cell, so
+   * its outline traces the drafting grid. Silkscreen is drawn eight
+   * pixels to the em with one pixel of left bearing; the shift sets its
+   * baseline on the grid line at the foot of the box (0.39 is the face's
+   * baseline constant, as --bl-k is for Plex).
+   */
   .designation {
-    margin: 0 0 var(--u);
-    font-family: var(--font-display);
-    font-size: 168px;
+    --lh: calc(5 * var(--u));
+    height: var(--lh);
+    margin: 0 0 var(--u) calc(-1 * var(--u));
+    font-family: var(--font-pixel);
+    font-size: calc(8 * var(--u));
     font-weight: var(--w-bold);
-    line-height: 144px;
-    letter-spacing: -0.04em;
+    line-height: var(--lh);
+    white-space: nowrap;
     color: transparent;
-    -webkit-text-stroke: 1.5px var(--accent);
+    -webkit-text-stroke: 2px var(--accent);
+    transform: translateY(calc(var(--lh) / 2 - 0.39em));
   }
 
   @supports not (-webkit-text-stroke: 1px black) {
@@ -916,23 +1436,16 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   .spec {
     width: 100%;
     border-collapse: collapse;
-    border-bottom: var(--rule-width) solid var(--rule-strong);
   }
 
   .spec caption {
-    padding-bottom: var(--u-half);
-    border-bottom: var(--rule-width) solid var(--rule-strong);
-    font-size: var(--t-micro);
-    font-weight: var(--w-semibold);
+    font-family: var(--font-pixel);
+    font-size: var(--t-pixel);
+    font-weight: var(--w-regular);
     line-height: var(--lh-grid);
-    letter-spacing: var(--track-mono-label);
     text-align: left;
     text-transform: uppercase;
     color: var(--accent-ink);
-  }
-
-  .spec tr + tr {
-    border-top: var(--rule-width) solid var(--rule);
   }
 
   .spec th,
@@ -941,10 +1454,21 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     line-height: var(--lh-grid);
     text-align: left;
     vertical-align: top;
+    box-shadow: inset 0 var(--rule-width) 0 var(--rule);
+  }
+
+  .spec tr:first-child > * {
+    box-shadow: inset 0 var(--rule-width) 0 var(--rule-strong);
+  }
+
+  .spec tr:last-child > * {
+    box-shadow:
+      inset 0 var(--rule-width) 0 var(--rule),
+      0 var(--rule-width) 0 var(--rule-strong);
   }
 
   .spec th {
-    width: 168px;
+    width: calc(7 * var(--u));
     padding-right: var(--u);
     font-size: var(--t-micro);
     font-weight: var(--w-medium);
@@ -954,7 +1478,8 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   }
 
   .spec td {
-    font-size: var(--t-sm);
+    font-family: var(--font-text);
+    font-size: var(--t-text-sm);
     color: var(--ink-strong);
   }
 
@@ -963,15 +1488,12 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     margin-top: var(--u-3);
   }
 
-  .schedule > .label {
-    margin: 0;
-  }
-
   .dim {
     position: relative;
     height: var(--u-2);
   }
 
+  /* Both hang on the schedule's rule: the grid line at the foot of .dim. */
   .dim-done {
     position: absolute;
     left: 0;
@@ -980,6 +1502,58 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     width: calc(var(--progress) * 100%);
     height: 3px;
     background: var(--signal);
+  }
+
+  /*
+   * The ruler: unnumbered graduations standing on the schedule's rule —
+   * a fine tick every half cell, a taller one every five, the tallest
+   * every ten, on the drafting grid's heavy lines. Ticks behind "now" are
+   * blue, ticks still ahead are grey.
+   *
+   * The ticks are a mask; the colour behind them is split at --fill, so
+   * one boundary does the blue/grey for every tick. --drawn is how much
+   * of the ruler is showing, rounded down to whole ticks (see Motion).
+   */
+  @property --fill {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 0%;
+  }
+
+  @property --drawn {
+    syntax: '<length-percentage>';
+    inherits: false;
+    initial-value: 0%;
+  }
+
+  .dim-ruler {
+    --tick: var(--u-half);
+    --fill: calc(var(--progress) * 100%);
+    --drawn: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 8px;
+    background: linear-gradient(
+      90deg,
+      var(--signal) var(--fill),
+      var(--ink-faint) var(--fill)
+    );
+    --_t: #000 0 var(--rule-width), transparent var(--rule-width);
+    -webkit-mask:
+      repeating-linear-gradient(90deg, var(--_t) var(--tick)) left bottom / 100% 4px no-repeat,
+      repeating-linear-gradient(90deg, var(--_t) calc(5 * var(--tick))) left bottom / 100% 6px
+        no-repeat,
+      repeating-linear-gradient(90deg, var(--_t) calc(10 * var(--tick))) left bottom / 100% 8px
+        no-repeat;
+    mask:
+      repeating-linear-gradient(90deg, var(--_t) var(--tick)) left bottom / 100% 4px no-repeat,
+      repeating-linear-gradient(90deg, var(--_t) calc(5 * var(--tick))) left bottom / 100% 6px
+        no-repeat,
+      repeating-linear-gradient(90deg, var(--_t) calc(10 * var(--tick))) left bottom / 100% 8px
+        no-repeat;
+    clip-path: inset(0 calc(100% - round(down, var(--drawn), var(--tick)) - 1px) 0 0);
   }
 
   .dim-now {
@@ -999,17 +1573,28 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   }
 
   .stops {
+    position: relative;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, var(--col-4)) minmax(0, 1fr);
+    column-gap: var(--u-2);
     list-style: none;
     margin: 0;
     padding: 0;
-    border-top: var(--rule-width) solid var(--rule-strong);
   }
 
   .stop {
     position: relative;
-    padding: var(--u) var(--u) 0 0;
+    padding-top: var(--u);
+  }
+
+  /* Milestone ticks follow the ruler: blue once reached, grey ahead. */
+  .stop::before {
+    background: var(--ink-soft);
+  }
+
+  .stop.done::before,
+  .stop.current::before {
+    background: var(--signal);
   }
 
   .stop-ref,
@@ -1023,6 +1608,10 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   }
 
   .stop-ref {
+    font-family: var(--font-pixel);
+    font-size: var(--t-pixel);
+    font-weight: var(--w-regular);
+    letter-spacing: 0;
     color: var(--ink-muted);
   }
 
@@ -1047,13 +1636,12 @@ const partnerMeta = (p: (typeof partners)[number]) =>
 
   .track-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: var(--col-3) var(--col-3) minmax(0, 1fr);
     gap: var(--u);
   }
 
   .track {
     padding: var(--u);
-    border: var(--rule-width) solid var(--rule);
   }
 
   .track-meta {
@@ -1064,15 +1652,16 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     margin-bottom: var(--u);
   }
 
+  /* One cell tall, filled rather than outlined so it needs no border. */
   .tag {
-    padding: 0 var(--u-quarter);
-    border: var(--rule-width) solid var(--rule-strong);
-    font-size: var(--t-micro);
-    font-weight: var(--w-medium);
-    line-height: 22px; /* sub-grid: 22px + two 1px borders makes one 24px cell */
-    letter-spacing: var(--track-widest);
+    padding: 0 var(--u-half);
+    background: var(--accent-wash);
+    font-family: var(--font-pixel);
+    font-size: var(--t-pixel);
+    font-weight: var(--w-regular);
+    line-height: var(--lh-grid);
     text-transform: uppercase;
-    color: var(--ink-strong);
+    color: var(--accent-ink);
   }
 
   /* ============================================================
@@ -1080,18 +1669,18 @@ const partnerMeta = (p: (typeof partners)[number]) =>
      ============================================================ */
   .ways {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    border: var(--rule-width) solid var(--rule-strong);
+    grid-template-columns: var(--col-3) var(--col-3) minmax(0, 1fr);
+    column-gap: var(--u);
   }
 
+  /* Each card shares the wall's rows, so the rules and the bullets line
+     up across A, B and C however long each lede runs. */
   .way {
-    display: flex;
-    flex-direction: column;
+    --frame-color: var(--rule-strong);
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 5;
     padding: var(--u);
-  }
-
-  .way + .way {
-    border-left: var(--rule-width) solid var(--rule);
   }
 
   .way-top {
@@ -1101,16 +1690,19 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     margin-bottom: var(--u);
   }
 
+  /* The reference letter fills one grid cell, like a lit pixel. */
   .way-ref {
     display: inline-grid;
     place-items: center;
     width: var(--u);
     height: var(--u);
-    border: var(--rule-width) solid var(--accent);
-    font-size: var(--t-micro);
-    font-weight: var(--w-semibold);
-    line-height: 22px; /* sub-grid: 22px + two 1px borders makes one 24px cell */
-    color: var(--accent-ink);
+    padding-left: 2px; /* Silkscreen's one pixel of left bearing, at 16px */
+    background: var(--accent);
+    font-family: var(--font-pixel);
+    font-size: var(--t-pixel);
+    font-weight: var(--w-regular);
+    line-height: var(--lh-grid);
+    color: var(--ink-inverse);
   }
 
   .way h3 {
@@ -1124,52 +1716,57 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   }
 
   .way-lede {
-    margin: var(--u-half) 0 0;
-    font-size: var(--t-base);
+    margin: 0;
+    font-family: var(--font-text);
+    font-size: var(--t-text);
     line-height: var(--lh-grid);
     color: var(--ink-body);
   }
 
   .way ul {
-    flex: 1;
     list-style: none;
-    margin: var(--u) 0 var(--u);
+    margin: var(--u) 0;
     padding: var(--u) 0 0;
-    border-top: var(--rule-width) solid var(--rule);
+    box-shadow: inset 0 var(--rule-width) 0 var(--rule);
   }
 
   .way li {
     position: relative;
     padding-left: var(--u);
-    font-size: var(--t-sm);
+    font-family: var(--font-text);
+    font-size: var(--t-text-sm);
     line-height: var(--lh-grid);
-    color: var(--ink-muted);
+    color: var(--ink-body);
   }
 
   .way li + li {
-    margin-top: var(--u-half);
+    margin-top: var(--u);
   }
 
   .way li::before {
     content: '';
     position: absolute;
-    top: 11px;
+    top: 12px;
     left: 0;
     width: var(--u-half);
     height: var(--rule-width);
     background: var(--accent);
   }
 
+  /* The call to action runs the width of the card, edge to grid line. */
   .way .btn {
-    align-self: flex-start;
+    align-self: end;
+    justify-content: space-between;
   }
 
   /* ============================================================
      04 — Log
      ============================================================ */
+  /* Date, type, entry and source each start on a grid line: the columns
+     and the gap between them are whole cells. */
   .log {
-    --log-cols: 120px 84px minmax(0, 1fr) minmax(0, 240px);
-    border-bottom: var(--rule-width) solid var(--rule-strong);
+    --log-cols: calc(5 * var(--u)) calc(3 * var(--u)) minmax(0, 1fr) minmax(0, calc(10 * var(--u)));
+    box-shadow: 0 var(--rule-width) 0 var(--rule-strong);
   }
 
   .log-head,
@@ -1177,12 +1774,14 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     display: grid;
     grid-template-columns: var(--log-cols);
     gap: var(--u);
-    align-items: baseline;
-    padding: var(--u-half) var(--u-half);
+    align-items: center;
+    padding: var(--u-half) var(--u);
   }
 
+  /* The column heads sit on the table's top rule, as a section's
+     title sits on its own. */
   .log-head {
-    border-bottom: var(--rule-width) solid var(--rule-strong);
+    padding-block: 0;
     font-size: var(--t-micro);
     font-weight: var(--w-medium);
     line-height: var(--lh-grid);
@@ -1197,11 +1796,21 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     padding: 0;
   }
 
-  .log li + li {
-    border-top: var(--rule-width) solid var(--rule);
+  .log li {
+    box-shadow: inset 0 var(--rule-width) 0 var(--rule);
+  }
+
+  .log li:first-child {
+    box-shadow: inset 0 var(--rule-width) 0 var(--rule-strong);
+  }
+
+  /* Source is set flush right in its column, so its head is too. */
+  .log-head span:last-child {
+    text-align: right;
   }
 
   .log a {
+    position: relative;
     font-size: var(--t-sm);
     line-height: var(--lh-grid);
     text-decoration: none;
@@ -1213,15 +1822,34 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     background: var(--accent-wash);
   }
 
+  /* The entry under the pointer is marked in the margin, a beige bar
+     drawn out from the row's middle. Clear of the row's top rule. */
+  .log a::before {
+    content: '';
+    position: absolute;
+    top: var(--rule-width);
+    bottom: 0;
+    left: 0;
+    width: 2px;
+    background: var(--accent);
+    scale: 1 0;
+    transition: scale var(--dur-slow) var(--ease-out);
+  }
+
+  .log a:hover::before,
+  .log a:focus-visible::before {
+    scale: 1 1;
+  }
+
   .l-date,
   .l-src {
     color: var(--ink-muted);
   }
 
   .l-kind {
-    font-size: var(--t-micro);
-    font-weight: var(--w-medium);
-    letter-spacing: var(--track-mono-label);
+    font-family: var(--font-pixel);
+    font-size: var(--t-pixel);
+    font-weight: var(--w-regular);
     text-transform: uppercase;
     color: var(--accent-ink);
   }
@@ -1247,89 +1875,194 @@ const partnerMeta = (p: (typeof partners)[number]) =>
   /* ============================================================
      05 — Partners
      ============================================================ */
-  .wall {
+  /*
+   * The roster: tiles five to a row, ten cells each, sharing their rules.
+   * Each tile paints its own top and left rule; the roster closes the
+   * right and bottom. A tile's rows are the roster's rows (subgrid), so
+   * names and places line up across a row whatever wraps.
+   */
+  .roster {
+    --tile-col: round(down, 20%, var(--u));
+    position: relative;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    border-top: var(--rule-width) solid var(--rule-strong);
-    border-left: var(--rule-width) solid var(--rule);
+    grid-template-columns: repeat(4, var(--tile-col)) minmax(0, 1fr);
   }
 
-  .partner {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    padding: var(--u);
+  .roster::after {
+    content: '';
+    position: absolute;
+    inset: 0 -1px -1px 0;
     border-right: var(--rule-width) solid var(--rule);
     border-bottom: var(--rule-width) solid var(--rule);
-    text-decoration: none;
+    pointer-events: none;
+  }
+
+  .tile {
+    position: relative;
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 4;
+    padding: var(--u);
     color: var(--ink-strong);
+    text-decoration: none;
+    box-shadow:
+      inset 0 var(--rule-width) 0 var(--rule),
+      inset var(--rule-width) 0 0 var(--rule);
     transition: background-color var(--dur) var(--ease);
   }
 
-  .partner:hover {
+  /* Four art pixels that light the tile's corners under the pointer —
+     the same stepped corner the buttons have. */
+  .tile::after {
+    --dot: linear-gradient(var(--accent), var(--accent));
+    content: '';
+    position: absolute;
+    inset: 1px 0 0 1px;
+    background:
+      var(--dot) top left,
+      var(--dot) top right,
+      var(--dot) bottom left,
+      var(--dot) bottom right;
+    background-size: var(--px) var(--px);
+    background-repeat: no-repeat;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  .tile:hover,
+  .tile:focus-visible {
     background: var(--accent-wash);
     color: var(--ink-strong);
   }
 
+  .tile:hover::after,
+  .tile:focus-visible::after {
+    opacity: 1;
+  }
+
+  .tile:focus-visible {
+    outline-offset: -3px;
+  }
+
+  .tile-top {
+    display: flex;
+    justify-content: space-between;
+    height: var(--u);
+    line-height: var(--lh-grid);
+  }
+
+  .tile-go {
+    color: var(--ink-faint);
+    transition:
+      color var(--dur) var(--ease),
+      transform var(--dur) var(--ease);
+  }
+
+  .tile:hover .tile-go {
+    color: var(--accent-ink);
+    transform: translate(2px, -2px);
+  }
+
   /* The mark takes its colour from here: warm white, beige on hover. */
-  .partner-mark {
+  .tile-mark {
     display: flex;
     align-items: center;
-    height: var(--u-4);
-    margin-bottom: var(--u);
+    height: calc(5 * var(--u));
     color: var(--ink);
     transition: color var(--dur) var(--ease);
   }
 
-  .partner:hover .partner-mark {
+  .tile:hover .tile-mark {
     color: var(--accent);
   }
 
-  .partner-name {
+  .tile-name {
     font-family: var(--font-display);
-    font-size: var(--t-xl);
+    font-size: var(--t-lg);
     font-weight: var(--w-semibold);
     line-height: var(--lh-grid);
     letter-spacing: var(--track-snug);
+    text-wrap: balance;
   }
 
-  .partner-go {
-    position: absolute;
-    top: var(--u);
-    right: var(--u);
+  .tile-meta {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* The open place: it closes the row, and lies flat when it is given
+     room to (as a banner under a full row of partners). */
+  .tile.open {
+    display: block;
+    grid-column: span var(--span-5);
+    container-type: inline-size;
+  }
+
+  .open-in {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--u);
+    height: 100%;
+  }
+
+  .open-slot {
+    position: relative;
+    width: var(--u-2);
+    height: var(--u-2);
+    background:
+      linear-gradient(var(--accent), var(--accent)) center / var(--u) var(--px) no-repeat,
+      linear-gradient(var(--accent), var(--accent)) center / var(--px) var(--u) no-repeat;
+    outline: var(--rule-width) dashed var(--rule-strong);
+    outline-offset: -1px;
+    transition: outline-color var(--dur) var(--ease);
+  }
+
+  .tile.open:hover .open-slot {
+    outline-color: var(--accent);
+  }
+
+  .tile.open .tile-name {
+    color: var(--accent-ink);
+  }
+
+  .open-go {
+    display: flex;
+    align-items: center;
+    gap: var(--u-half);
+    font-family: var(--font-pixel);
+    font-size: var(--t-pixel);
     line-height: var(--lh-grid);
-    color: var(--ink-faint);
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--ink-muted);
     transition: color var(--dur) var(--ease);
   }
 
-  .partner:hover .partner-go {
+  .open-go .arrow {
+    font-family: var(--font-mono);
+    transition: transform var(--dur) var(--ease);
+  }
+
+  .tile.open:hover .open-go {
     color: var(--accent-ink);
   }
 
-  /* The open place on the wall. */
-  .partner.open .partner-name {
-    color: var(--accent-ink);
+  .tile.open:hover .open-go .arrow {
+    transform: translateX(3px);
   }
 
-  .slot {
-    display: grid;
-    place-items: center;
-    width: var(--u-3);
-    height: var(--u-3);
-    border: var(--rule-width) dashed var(--rule-strong);
-    font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: var(--w-regular);
-    line-height: var(--lh-grid);
-    color: var(--ink-muted);
-    transition:
-      border-color var(--dur) var(--ease),
-      color var(--dur) var(--ease);
-  }
+  /* A banner: one row, four cells tall. */
+  @container (min-width: 600px) {
+    .open-in {
+      flex-direction: row;
+      align-items: center;
+    }
 
-  .partner.open:hover .slot {
-    border-color: var(--accent);
-    color: var(--accent-ink);
+    .open-go {
+      margin-left: auto;
+    }
   }
 
   /* ============================================================
@@ -1342,8 +2075,17 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     }
 
     .hero {
-      grid-template-columns: minmax(0, 1fr) 336px;
+      grid-template-columns: minmax(0, 1fr) calc(14 * var(--u));
       gap: var(--u-2);
+    }
+
+    .roster {
+      --tile-col: round(down, calc(100% / 3), var(--u));
+      grid-template-columns: repeat(2, var(--tile-col)) minmax(0, 1fr);
+    }
+
+    .tile.open {
+      grid-column: span var(--span-3);
     }
   }
 
@@ -1355,11 +2097,11 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     }
 
     .title-block {
-      max-width: 480px;
+      width: min(100%, calc(20 * var(--u)));
     }
 
     .why-fig {
-      max-width: 420px;
+      width: min(100%, calc(18 * var(--u)));
     }
 
     .steps,
@@ -1368,18 +2110,19 @@ const partnerMeta = (p: (typeof partners)[number]) =>
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .steps {
-      border-top: 0;
+    .track-grid,
+    .ways {
+      row-gap: var(--u);
+    }
+
+    /* Each step is ruled on its own here. */
+    .steps::before {
+      display: none;
     }
 
     .step {
       padding: var(--u) 0;
-      border-top: var(--rule-width) solid var(--rule-strong);
-    }
-
-    .way + .way {
-      border-left: 0;
-      border-top: var(--rule-width) solid var(--rule);
+      box-shadow: inset 0 var(--rule-width) 0 var(--rule-strong);
     }
 
     /* The schedule turns to run down the page. */
@@ -1389,9 +2132,12 @@ const partnerMeta = (p: (typeof partners)[number]) =>
 
     .stops {
       grid-template-columns: minmax(0, 1fr);
-      margin-top: var(--u-half);
-      border-top: 0;
-      border-left: var(--rule-width) solid var(--rule-strong);
+    }
+
+    .stops::before {
+      width: var(--rule-width);
+      height: 100%;
+      transform-origin: top;
     }
 
     .stop {
@@ -1404,7 +2150,7 @@ const partnerMeta = (p: (typeof partners)[number]) =>
 
     .stop::before {
       top: 12px;
-      left: -7px;
+      left: -6px;
       width: 13px;
       height: var(--rule-width);
     }
@@ -1418,13 +2164,40 @@ const partnerMeta = (p: (typeof partners)[number]) =>
       display: inline;
     }
 
-    .wall {
-      grid-template-columns: repeat(2, 1fr);
+    /* One pixel of the lettering is half a cell here. */
+    .designation {
+      --lh: var(--u-3);
+      margin-left: calc(-1 * var(--u-half));
+      font-size: calc(4 * var(--u));
     }
 
-    .designation {
-      font-size: 120px;
-      line-height: 96px;
+    /* The reel takes a row of its own under the label and the link. */
+    .reel-band {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-rows: var(--u-2) var(--u-3);
+      height: auto;
+      margin-top: var(--u-2);
+    }
+
+    .reel {
+      grid-area: 2 / 1 / 3 / -1;
+      box-shadow: inset 0 var(--rule-width) 0 var(--rule);
+    }
+
+    .reel-all {
+      grid-area: 1 / 2;
+      box-shadow: none;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .roster {
+      --tile-col: round(down, 50%, var(--u));
+      grid-template-columns: var(--tile-col) minmax(0, 1fr);
+    }
+
+    .tile.open {
+      grid-column: span var(--span-2);
     }
   }
 
@@ -1433,14 +2206,15 @@ const partnerMeta = (p: (typeof partners)[number]) =>
       display: none;
     }
 
-    .log {
-      border-top: var(--rule-width) solid var(--rule-strong);
-    }
-
     .log a {
       grid-template-columns: auto minmax(0, 1fr);
       gap: 0 var(--u-half);
       padding-inline: 0;
+    }
+
+    /* No margin left to mark the row in. */
+    .log a::before {
+      display: none;
     }
 
     .l-title {
@@ -1450,10 +2224,6 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     .l-src {
       grid-column: 1 / -1;
       text-align: left;
-    }
-
-    .with-all {
-      margin-left: 0;
     }
   }
 
@@ -1466,13 +2236,19 @@ const partnerMeta = (p: (typeof partners)[number]) =>
     .lede {
       font-size: var(--t-md);
     }
+  }
 
-    .wall {
+  @media (max-width: 480px) {
+    .roster {
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .partner-mark {
-      height: var(--u-3);
+    .tile.open {
+      grid-column: auto;
+    }
+
+    .tile-mark {
+      height: calc(4 * var(--u));
     }
   }
 </style>

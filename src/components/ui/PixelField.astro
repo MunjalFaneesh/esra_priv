@@ -1,0 +1,201 @@
+---
+/**
+ * A background field: grid cells shaded like a pixel halftone.
+ *
+ * Each mark is a square centred in one cell of the drafting grid — large
+ * around the field's focus, stepping down to a dot and then to nothing as
+ * it gets further away. Because the marks sit inside the cells and the
+ * field is positioned in whole cells from the content edge, the grid lines
+ * run between them untouched. A few cells are lit in beige and blink
+ * slowly, on and off like a pixel rather than fading.
+ *
+ * Purely decorative: hidden from assistive tech, drawn at low contrast,
+ * and still under prefers-reduced-motion. The pattern is seeded, so a
+ * build always draws the same field.
+ *
+ * Place it in a Section's `backdrop` slot. It hangs from one edge of the
+ * content measure:
+ *
+ *   <PixelField slot="backdrop" side="end" overlap={10} cols={16} rows={9}
+ *     focus={[12, 0]} radius={[9, 7]} />
+ *
+ * is sixteen cells wide, its first ten inside the content's right edge
+ * and the rest running out into the margin; it is densest two cells past
+ * that edge, on the top row. Keep the focus near the content edge rather
+ * than the field's own: the margin is as wide as the screen allows, and a
+ * field that peaks at its outer edge looks cut off on a large one.
+ */
+interface Props {
+  cols: number;
+  rows: number;
+  /** Which edge of the content measure the field hangs from. */
+  side?: 'start' | 'end';
+  /** How many of its columns sit inside the content measure. */
+  overlap?: number;
+  /** Rows down from the band's top edge. Ignored if `bottom` is set. */
+  top?: number;
+  /** Rows up from the band's bottom edge. */
+  bottom?: number;
+  /** The cell where the field is densest, as [column, row]. */
+  focus?: [number, number];
+  /** How far the shading reaches from the focus, in cells, as [x, y]. */
+  radius?: [number, number];
+  /** How many cells are lit and blinking. */
+  lit?: number;
+  seed?: number;
+  /** Keep the field on narrow screens, where it sits behind text. */
+  keepNarrow?: boolean;
+}
+
+const {
+  cols,
+  rows,
+  side = 'end',
+  overlap = cols,
+  top = 0,
+  bottom,
+  focus = [cols - 1, 0],
+  radius = [cols, rows],
+  lit = 3,
+  seed = 1,
+  keepNarrow = false,
+} = Astro.props;
+
+const U = 24;
+
+// mulberry32: small, seeded, good enough to scatter squares.
+let state = seed >>> 0;
+const rand = () => {
+  state = (state + 0x6d2b79f5) >>> 0;
+  let t = state;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+
+/*
+ * Mark sizes, largest first. A cell is 24px with its grid line on the
+ * first pixel, leaving 23px of interior — so odd sizes centre exactly and
+ * every edge lands on a whole pixel.
+ */
+const STEPS = [
+  { min: 0.74, size: 19, r: 2, o: 0.1 },
+  { min: 0.54, size: 11, r: 1, o: 0.14 },
+  { min: 0.36, size: 5, r: 0, o: 0.22 },
+  { min: 0.2, size: 3, r: 0, o: 0.3 },
+];
+
+interface Mark {
+  x: number;
+  y: number;
+  size: number;
+  r: number;
+  o: number;
+  step: number;
+}
+
+const marks: Mark[] = [];
+for (let j = 0; j < rows; j++) {
+  for (let i = 0; i < cols; i++) {
+    // 0 at the focus, 1 at the edge of its reach.
+    const d = Math.hypot((i - focus[0]) / radius[0], (j - focus[1]) / radius[1]);
+    const noise = rand();
+    const drop = rand();
+    const v = 1 - d + (noise - 0.5) * 0.5;
+    const step = STEPS.findIndex((s) => v >= s.min);
+    if (step < 0 || drop < 0.14) continue;
+    const s = STEPS[step];
+    const inset = 1 + (23 - s.size) / 2;
+    marks.push({ x: i * U + inset, y: j * U + inset, size: s.size, r: s.r, o: s.o, step });
+  }
+}
+
+// Light a few mid-sized cells, spread through the field.
+const candidates = marks.filter((m) => m.step === 1 || m.step === 2);
+const litSet = new Map<Mark, number>();
+for (let n = 0; n < lit && candidates.length; n++) {
+  const [m] = candidates.splice(Math.floor(rand() * candidates.length), 1);
+  litSet.set(m, n);
+}
+
+const w = cols * U;
+const h = rows * U;
+const x =
+  side === 'end'
+    ? `calc(var(--edge) + var(--content-w) - ${overlap * U}px)`
+    : `calc(var(--edge) - ${(cols - overlap) * U}px)`;
+const y = bottom === undefined ? `top: ${top * U}px;` : `bottom: ${bottom * U}px;`;
+---
+
+<svg
+  class:list={['pixel-field', { 'keep-narrow': keepNarrow }]}
+  width={w}
+  height={h}
+  viewBox={`0 0 ${w} ${h}`}
+  style={`left: ${x}; ${y}`}
+  aria-hidden="true"
+  focusable="false"
+>
+  {
+    marks.map((m) =>
+      litSet.has(m) ? (
+        <rect
+          class="lit"
+          x={m.x}
+          y={m.y}
+          width={m.size}
+          height={m.size}
+          rx={m.r}
+          style={`animation-delay: ${-(litSet.get(m)! * 2.3).toFixed(1)}s; animation-duration: ${7 + (litSet.get(m)! % 3) * 2}s;`}
+        />
+      ) : (
+        <rect x={m.x} y={m.y} width={m.size} height={m.size} rx={m.r} opacity={m.o} />
+      )
+    )
+  }
+</svg>
+
+<style>
+  .pixel-field {
+    position: absolute;
+    max-width: none;
+    fill: var(--field);
+    shape-rendering: crispEdges;
+    pointer-events: none;
+  }
+
+  /* A lit cell: beige, and mostly dim. It steps between states rather
+     than easing, the way a pixel changes. */
+  .lit {
+    fill: var(--accent);
+    opacity: 0.2;
+    animation: blink 7s steps(1, end) infinite;
+  }
+
+  @keyframes blink {
+    0% {
+      opacity: 0.2;
+    }
+    38% {
+      opacity: 0.62;
+    }
+    52% {
+      opacity: 0.36;
+    }
+    60% {
+      opacity: 0.2;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .pixel-field:not(.keep-narrow) {
+      display: none;
+    }
+  }
+
+  @media (forced-colors: active), print {
+    .pixel-field {
+      display: none;
+    }
+  }
+</style>

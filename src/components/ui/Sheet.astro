@@ -2,10 +2,20 @@
 /**
  * The drawing sheet. Every page sits on it.
  *
- * It sets the content measure that each full-bleed band centres on
- * (--content-max) and nothing else: the drafting grid behind the page is
- * painted once on <body> (see global.css), so the sheet itself carries no
- * decoration.
+ * It sets the content measure that each full-bleed band centres on, and
+ * nothing else: the drafting grid behind the page is painted once on
+ * <body> (see global.css), so the sheet itself carries no decoration.
+ *
+ * Two values place every band on that grid:
+ *
+ *   --edge       where content starts: the gutter, or half the spare width
+ *                once the screen is wider than the measure. Floored to a
+ *                whole pixel, exactly as the grid's own origin is.
+ *   --content-w  the measure, rounded down to whole cells — so content
+ *                ends on a grid line too, at any screen width.
+ *
+ * Both hold a percentage, so they resolve where they are used: against
+ * the full width of the sheet, for anything that spans it.
  */
 interface Props {
   /** Kept for API compatibility; the drafting grid is always on. */
@@ -25,6 +35,10 @@ const { wide = false, class: className } = Astro.props;
 <style>
   .sheet {
     --content-max: var(--sheet-max);
+    --edge: max(var(--gutter), round(down, calc((100% - var(--content-max)) / 2), 1px));
+    --content-w: round(down, min(var(--content-max), 100% - 2 * var(--gutter)), var(--u));
+    /* The right-hand margin that is left over. */
+    --edge-end: calc(100% - var(--edge) - var(--content-w));
 
     position: relative;
     min-height: 100vh;
@@ -33,6 +47,6 @@ const { wide = false, class: className } = Astro.props;
   }
 
   .sheet.wide {
-    --content-max: 1400px;
+    --content-max: 1392px; /* 58 cells: four more each side of the measure */
   }
 </style>

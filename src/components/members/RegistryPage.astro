@@ -13,6 +13,7 @@ import Section from '../../components/ui/Section.astro';
 import SectionHead from '../../components/ui/SectionHead.astro';
 import MonoLabel from '../../components/ui/MonoLabel.astro';
 import DataGrid from '../../components/ui/DataGrid.astro';
+import PartnerMark from '../../components/ui/PartnerMark.astro';
 import MemberRoster from './MemberRoster.astro';
 
 interface Props {
@@ -56,15 +57,15 @@ const description = isIndex
   <MemberRoster members={members} selected={selected} />
 
   <Section id="clubs" pad="normal" last>
-    <SectionHead title="Affiliated clubs" aside={`N=${partners.length}`} />
+    <SectionHead title="Affiliated partners" aside={`N=${partners.length}`} />
     <DataGrid min="220px">
       {
         partners.map((p) => (
           <a class="club" href={p.data.url} rel="noopener" target="_blank">
             <div class="club-top">
-              <MonoLabel size="micro" track="wide">
-                {p.data.abbr ?? p.data.school}
-              </MonoLabel>
+              <div class="club-mark">
+                <PartnerMark partner={p} height={48} maxWidth={120} decorative />
+              </div>
               <span class="arrow" aria-hidden="true">
                 &#8599;
               </span>
@@ -115,30 +116,50 @@ const description = isIndex
 
   .club {
     display: block;
-    padding: 20px;
+    padding: var(--u);
     text-decoration: none;
     color: var(--ink-strong);
-    transition: background var(--dur-fast) var(--ease);
   }
 
+  /* DataGrid cells are solid --sheet, so the wash is composited onto it. */
   .club:hover {
-    background: rgba(36, 36, 36, 0.05);
+    background: linear-gradient(var(--accent-wash), var(--accent-wash)), var(--sheet);
     color: var(--ink-strong);
   }
 
   .club-top {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
+    align-items: flex-start;
+    gap: var(--u-half);
+  }
+
+  /* The mark takes its colour from here: warm white, beige on hover. */
+  .club-mark {
+    display: flex;
+    align-items: center;
+    height: var(--u-2);
+    color: var(--ink);
+    transition: color var(--dur) var(--ease);
+  }
+
+  .club:hover .club-mark {
+    color: var(--accent);
   }
 
   .arrow {
-    color: var(--ink-muted);
+    color: var(--ink-faint);
     font-size: var(--t-mono);
+    line-height: var(--lh-grid);
+    transition: color var(--dur) var(--ease);
+  }
+
+  .club:hover .arrow {
+    color: var(--accent-ink);
   }
 
   .club-name {
-    margin-top: var(--u-half);
+    margin-top: var(--u);
     font-size: var(--t-md);
     font-weight: var(--w-semibold);
     line-height: var(--lh-grid);
